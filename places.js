@@ -43,6 +43,8 @@ function staticLoadPlaces() {
 
 // getting places from REST APIs
 function dynamicLoadPlaces(position) {
+    getNearbyArticle(position);
+    /*
     let params = {
         radius: 300,    // search places not farther than this value (in meters)
         clientId: 'HZIJGI4COHQ4AI45QXKCDFJWFJ1SFHYDFCCWKPIJDWHLVQVZ',
@@ -70,8 +72,41 @@ function dynamicLoadPlaces(position) {
         })
         .catch((err) => {
             console.error('Error with places API', err);
-        })
+        })*/
 };
+
+async function getNearbyArticle(position) {
+    console.info('Finding nearby article');
+    const response = await fetchWithTimeout(wikiUrl('action=query&format=json&origin=*&generator=geosearch&ggsradius=10000&ggsnamespace=0&ggslimit=50&formatversion=2&ggscoord=' + encodeURIComponent(position.latitude) + '%7C' + encodeURIComponent(position.longitude), true, true));
+    if (!response.ok) {
+      console.error('Wikipedia nearby failed', response)
+      throw new Error('Wikipedia nearby is down');
+    }
+    const json = await response.json();
+    console.info('Nearby response', json);
+    const pages = json.query.pages;
+    for (let page of pages) {
+      const title = page.title;
+      if (seen[title]) {
+        continue;
+      }
+      seen[title] = true;
+      console.info('Title', title);
+      return getContent(title);
+    }
+    return null;
+  }
+
+  function timeout(time, message) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => reject(new Error('Timeout: ' + message)), time);
+    })
+  }
+  
+  function fetchWithTimeout(url, paras) {
+    return Promise.race([fetch(url, paras), 
+                         timeout(15 * 1000, 'Fetch timed out for ' + url)]);
+  }
 
 function renderPlaces(places) {
     let scene = document.querySelector('a-scene');
