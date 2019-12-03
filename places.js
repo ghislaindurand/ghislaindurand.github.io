@@ -121,7 +121,7 @@ async function getNearbyArticle(position) {
       title: page.title,
       label: page.title,
       content: simpleHtmlToText(page.extract.trim()),
-      lang: state.lang.speechTag,
+      //lang: state.lang.speechTag,
       /*
       coordinates: page.coordinates[0] ? {
         lat: page.coordinates[0].lat,
