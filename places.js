@@ -21,8 +21,7 @@ window.onload = () => {
                     renderPlaces(places);
                 })
                 */
-            const places = await dynamicLoadPlaces(position.coords);
-            renderPlaces(places);
+            dynamicLoadPlaces(position.coords);
         },
             (err) => console.error('Error in retrieving position', err),
             {
@@ -48,8 +47,12 @@ function staticLoadPlaces() {
 
 // getting places from REST APIs
 async function dynamicLoadPlaces(position) {
-    return await getNearbyArticle(position);
+    const places = await getNearbyArticle(position);
+
+    renderPlaces(places);
+
     /*
+
     let params = {
         radius: 300,    // search places not farther than this value (in meters)
         clientId: 'HZIJGI4COHQ4AI45QXKCDFJWFJ1SFHYDFCCWKPIJDWHLVQVZ',
