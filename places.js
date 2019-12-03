@@ -93,6 +93,7 @@ async function getNearbyArticle(position) {
     const json = await response.json();
     console.info('Nearby response', json);
     const pages = json.query.pages;
+    let places = [];
     for (let page of pages) {
       const title = page.title;
       //if (seen[title]) {
@@ -100,9 +101,11 @@ async function getNearbyArticle(position) {
       //}
       //seen[title] = true;
       console.info('Title', title);
-      return await getContent(title);
+      places.push(await getContent(title));
+      if (places.length >= 5) break;
     }
-    return null;
+    return places;
+    //return null;
   }
 
   async function getContent(title) {
