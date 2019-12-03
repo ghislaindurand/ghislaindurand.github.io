@@ -95,10 +95,10 @@ async function getNearbyArticle(position) {
     const pages = json.query.pages;
     for (let page of pages) {
       const title = page.title;
-      if (seen[title]) {
-        continue;
-      }
-      seen[title] = true;
+      //if (seen[title]) {
+      //  continue;
+      //}
+      //seen[title] = true;
       console.info('Title', title);
       return await getContent(title);
     }
@@ -115,7 +115,7 @@ async function getNearbyArticle(position) {
     const json = await response.json();
     const page = Object.values(json.query.pages)[0];
     console.info('Page', page)
-    seen[page.title] = true;
+    //seen[page.title] = true;
     return {
       url: wikiUrl(encodeURIComponent(page.title), false),
       title: page.title,
