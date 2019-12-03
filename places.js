@@ -14,6 +14,7 @@ window.onload = () => {
         return navigator.geolocation.getCurrentPosition(function (position) {
 
             // than use it to load from remote APIs some places nearby
+
             dynamicLoadPlaces(position.coords)
                 .then((places) => {
                     renderPlaces(places);
@@ -74,6 +75,13 @@ function dynamicLoadPlaces(position) {
             console.error('Error with places API', err);
         })*/
 };
+
+function wikiUrl(path, api, mobile) {
+    const wikiTag = 'fr';
+    let url = 'https://' + wikiTag;
+    if (mobile) url += '.m';
+    return url + '.wikipedia.org/' + (api ? 'w/api.php?' : 'wiki/') + path
+  }
 
 async function getNearbyArticle(position) {
     console.info('Finding nearby article');
