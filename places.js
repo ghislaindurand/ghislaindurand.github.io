@@ -100,7 +100,7 @@ async function getNearbyArticle(position) {
       }
       seen[title] = true;
       console.info('Title', title);
-      return getContent(title);
+      return await getContent(title);
     }
     return null;
   }
@@ -122,13 +122,18 @@ async function getNearbyArticle(position) {
       label: page.title,
       content: simpleHtmlToText(page.extract.trim()),
       lang: state.lang.speechTag,
+      /*
       coordinates: page.coordinates[0] ? {
+        lat: page.coordinates[0].lat,
+        lng: page.coordinates[0].lon,
+      } : null,*/
+      location: page.coordinates[0] ? {
         lat: page.coordinates[0].lat,
         lng: page.coordinates[0].lon,
       } : null,
     };
   }
-  
+
   function timeout(time, message) {
     return new Promise((resolve, reject) => {
       setTimeout(() => reject(new Error('Timeout: ' + message)), time);
