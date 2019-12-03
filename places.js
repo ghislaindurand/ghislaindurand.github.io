@@ -105,6 +105,30 @@ async function getNearbyArticle(position) {
     return null;
   }
 
+  async function getContent(title) {
+    console.info('Getting content');
+    const response = await fetchWithTimeout(wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates&titles=' + encodeURIComponent(title), true));
+    if (!response.ok) {
+      console.error('Wikipedia content call failed', response)
+      throw new Error('Wikipedia content is down');
+    }
+    const json = await response.json();
+    const page = Object.values(json.query.pages)[0];
+    console.info('Page', page)
+    seen[page.title] = true;
+    return {
+      url: wikiUrl(encodeURIComponent(page.title), false),
+      title: page.title,
+      label: page.title,
+      content: simpleHtmlToText(page.extract.trim()),
+      lang: state.lang.speechTag,
+      coordinates: page.coordinates[0] ? {
+        lat: page.coordinates[0].lat,
+        lng: page.coordinates[0].lon,
+      } : null,
+    };
+  }
+  
   function timeout(time, message) {
     return new Promise((resolve, reject) => {
       setTimeout(() => reject(new Error('Timeout: ' + message)), time);
