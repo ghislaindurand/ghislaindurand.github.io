@@ -145,6 +145,29 @@ async function getNearbyArticle(position) {
                          timeout(15 * 1000, 'Fetch timed out for ' + url)]);
   }
 
+  function simpleHtmlToText(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    remove(div.querySelector('#References'));
+    remove(div.querySelector('#See_also'));
+    let text = div.textContent;
+    text = text.replace(/(.)\n/g, '$1.\n');
+    // Remove stuff in parantheses. Nobody wants to hear that stuff.
+    // This isn't how you pass the Google interview.
+    // But it is technically O(n)
+    for (let i = 0; i < 10; i++) {
+      text = text.replace(/\([^\)]+\)/g, '');
+    }
+    return text;
+  }
+  
+  function remove(element) {
+    if (!element) {
+      return false;
+    }
+    return element.parentElement.removeChild(element);
+  }
+
 function renderPlaces(places) {
     let scene = document.querySelector('a-scene');
 
