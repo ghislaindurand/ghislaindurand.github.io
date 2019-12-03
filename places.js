@@ -120,6 +120,7 @@ async function getNearbyArticle(position) {
       url: wikiUrl(encodeURIComponent(page.title), false),
       title: page.title,
       label: page.title,
+      name: page.title,
       content: simpleHtmlToText(page.extract.trim()),
       //lang: state.lang.speechTag,
       /*
