@@ -15,10 +15,14 @@ window.onload = () => {
 
             // than use it to load from remote APIs some places nearby
 
+            /*
             dynamicLoadPlaces(position.coords)
                 .then((places) => {
                     renderPlaces(places);
                 })
+                */
+            const places = await dynamicLoadPlaces(position.coords);
+            renderPlaces(places);
         },
             (err) => console.error('Error in retrieving position', err),
             {
@@ -44,7 +48,7 @@ function staticLoadPlaces() {
 
 // getting places from REST APIs
 async function dynamicLoadPlaces(position) {
-    await getNearbyArticle(position);
+    return await getNearbyArticle(position);
     /*
     let params = {
         radius: 300,    // search places not farther than this value (in meters)
