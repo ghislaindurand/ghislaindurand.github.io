@@ -43,8 +43,8 @@ function staticLoadPlaces() {
 }
 
 // getting places from REST APIs
-function dynamicLoadPlaces(position) {
-    getNearbyArticle(position);
+async function dynamicLoadPlaces(position) {
+    await getNearbyArticle(position);
     /*
     let params = {
         radius: 300,    // search places not farther than this value (in meters)
