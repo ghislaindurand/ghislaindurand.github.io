@@ -173,9 +173,9 @@ window.onload = () => {
                   text.setAttribute('href', 'http://www.example.com/');
                   text.setAttribute('scale', '13 13 13');
 
-                  text.addEventListener('loaded', () => {
-                      window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
-                  });
+                  //text.addEventListener('loaded', () => {
+                  //    window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
+                  //});
 
                   scene.appendChild(text);
               });
