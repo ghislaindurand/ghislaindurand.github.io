@@ -1,0 +1,13 @@
+<head>
+    <title>My A-Frame Scene</title>
+    <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script> 
+    <script src="https://unpkg.com/aframe-toggle-controls-component/dist/aframe-toggle-controls-component.min.js"></script> 
+    <script src="https://unpkg.com/@editvr/aframe-dialog-popup-component@1.7.2/dist/aframe-dialog-popup-component.min.js"></script> 
+
+  </head>
+   
+  <body>
+    <a-scene toggle-controls="onEvents: toggleOn: offEvents: toggleOff;">
+        <a-entity dialog-popup="title: My Title; body: My Body"></a-entity>
+    </a-scene>
+  </body>
