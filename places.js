@@ -171,7 +171,7 @@ window.onload = () => {
                   text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
                   text.setAttribute('title', place.name);
                   text.setAttribute('href', place.url);
-                  text.setAttribute('scale', '13 13 13');
+                  text.setAttribute('scale', '25 25 25');
 
                   //text.addEventListener('loaded', () => {
                   //    window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
