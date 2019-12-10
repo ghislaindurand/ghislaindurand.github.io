@@ -170,7 +170,7 @@ window.onload = () => {
                   const text = document.createElement('a-link');
                   text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
                   text.setAttribute('title', place.name);
-                  text.setAttribute('href', 'http://www.example.com/');
+                  text.setAttribute('href', place.url);
                   text.setAttribute('scale', '13 13 13');
 
                   //text.addEventListener('loaded', () => {
