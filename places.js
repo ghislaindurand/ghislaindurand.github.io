@@ -196,6 +196,7 @@ AFRAME.registerComponent('geoloc', {
     // Code here.
     console.log(this.el);
 
+    const scene = document.querySelector('a-scene');
     navigator.geolocation.getCurrentPosition(function (position) {
 
       // than use it to load from remote APIs some places nearby
