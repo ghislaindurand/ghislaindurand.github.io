@@ -81,7 +81,7 @@ async function getNearbyArticle(position) {
     //seen[title] = true;
     console.info('Title', title);
     places.push(await getContent(title));
-    if (places.length >= 5) break;
+    if (places.length >= 25) break;
   }
   return places;
   //return null;
