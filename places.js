@@ -51,16 +51,15 @@ async function getNearbyArticle(position) {
 
 async function getContent(title) {
   console.info('Getting content');
-  const response = await fetchWithTimeout(wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates&titles=' + encodeURIComponent(title), true));
+  const response = await fetchWithTimeout(wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&titles=' + encodeURIComponent(title), true));
   if (!response.ok) {
     console.error('Wikipedia content call failed', response)
     throw new Error('Wikipedia content is down');
   }
   const json = await response.json();
   const page = Object.values(json.query.pages)[0];
-  console.info('Page', page)
-  //seen[page.title] = true;
-  return {
+  console.info('Page', page);
+  let place = {
     url: wikiUrl(encodeURIComponent(page.title), false),
     title: page.title,
     label: page.title,
@@ -76,7 +75,9 @@ async function getContent(title) {
       lat: page.coordinates[0].lat,
       lng: page.coordinates[0].lon,
     } : null,
+    image: (page.thumbnail && page.thumbnail.source) ? page.thumbnail.source : null,
   };
+  return place;
 }
 
 function timeout(time, message) {
@@ -174,6 +175,8 @@ AFRAME.registerComponent('geoloc', {
                   text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
                   text.setAttribute('title', place.name);
                   text.setAttribute('href', place.url);
+                  if (place.image !== null)
+                    text.setAttribute('image', place.image);
                   text.setAttribute('scale', '25 25 25');
 
                   //text.addEventListener('loaded', () => {
