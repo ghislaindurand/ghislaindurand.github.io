@@ -59,6 +59,10 @@ async function getContent(title) {
   const json = await response.json();
   const page = Object.values(json.query.pages)[0];
   console.info('Page', page);
+  let image = null;
+  if (page.thumbnail && page.thumbnail.source && /\.jpe?g$/.test(page.thumbnail.source)) {
+    image = page.thumbnail.source;
+  }
   let place = {
     url: wikiUrl(encodeURIComponent(page.title), false),
     title: page.title,
@@ -75,7 +79,7 @@ async function getContent(title) {
       lat: page.coordinates[0].lat,
       lng: page.coordinates[0].lon,
     } : null,
-    image: (page.thumbnail && page.thumbnail.source) ? page.thumbnail.source : null,
+    image: image,
   };
   return place;
 }
@@ -213,7 +217,9 @@ AFRAME.registerComponent('geoloc', {
                 .then((places) => {
               places.forEach((place) => {
 
-                renderIcon(place);
+                if (place.image !== null) {
+                  renderIcon(place);
+                }
 /*
                   const latitude = place.location.lat;
                   const longitude = place.location.lng;
