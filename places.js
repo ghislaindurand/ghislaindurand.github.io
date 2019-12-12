@@ -60,7 +60,7 @@ async function getContent(title) {
   const page = Object.values(json.query.pages)[0];
   console.info('Page', page);
   let image = null;
-  if (page.thumbnail && page.thumbnail.source && /\.jpe?g$/.test(page.thumbnail.source)) {
+  if (page.thumbnail && page.thumbnail.source && /\.(jpe?g|gif|png)$/.test(page.thumbnail.source)) {
     image = page.thumbnail.source;
   }
   let place = {
