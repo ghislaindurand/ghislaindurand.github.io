@@ -43,7 +43,7 @@ async function getNearbyArticle(position) {
       place = JSON.parse(place);
     }
     places.push(place);
-    if (places.length >= 25) break;
+    if (places.length >= 10) break;
   }
   return places;
   //return null;
@@ -85,7 +85,7 @@ async function getContent(title) {
 }
 
 function timeout(time, message) {
-  return new Promise((resolve, reject) => {
+  return new Promise((_resolve, reject) => {
     setTimeout(() => reject(new Error('Timeout: ' + message)), time);
   })
 }
