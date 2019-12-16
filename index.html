@@ -6,6 +6,8 @@
     <title>GeoAR.js demo</title>
     <script src='./aframe/build/aframe-master.js'></script>
     <script src='./aframe/build/aframe-ar-2.0.7.js'></script>
+    <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script> 
+
     <script>
         THREEx.ArToolkitContext.baseURL = './three.js/'
     </script>
@@ -27,6 +29,9 @@
         >
 
         <a-camera gps-camera="minDistance: 40;" rotation-reader>
-		</a-camera>
+        </a-camera>
+        
+        <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="0 0 -4"></a-entity>
+
 	</a-scene>
 </body>

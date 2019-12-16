@@ -1,5 +1,38 @@
 
 let cachePlaces = {};
+let currentPosition = null;
+
+/**
+ * Calculates the haversine distance between point A, and B.
+ * @param {object} latlngA {lat: number, lng: number} point A
+ * @param {object} latlngB {lat: number, lng: number} point B
+ */
+const haversineDistance = (latlngA, latlngB) => {
+  const toRadian = angle => (Math.PI / 180) * angle;
+  const distance = (a, b) => (Math.PI / 180) * (a - b);
+  const RADIUS_OF_EARTH_IN_KM = 6371;
+
+  let lat1 = latlngA.lat;
+  let lat2 = latlngB.lat;
+  const lon1 = latlngA.lng;
+  const lon2 = latlngB.lng;
+
+  const dLat = distance(lat2, lat1);
+  const dLon = distance(lon2, lon1);
+
+  lat1 = toRadian(lat1);
+  lat2 = toRadian(lat2);
+
+  // Haversine Formula
+  const a =
+    Math.pow(Math.sin(dLat / 2), 2) +
+    Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.asin(Math.sqrt(a));
+
+  const finalDistance = RADIUS_OF_EARTH_IN_KM * c;
+
+  return finalDistance;
+};
 
 function wikiUrl(path, api, mobile) {
   const wikiTag = 'fr';
@@ -43,7 +76,7 @@ async function getNearbyArticle(position) {
       place = JSON.parse(place);
     }
     places.push(place);
-    if (places.length >= 10) break;
+    if (places.length >= 25) break;
   }
   return places;
   //return null;
@@ -158,11 +191,14 @@ window.onload = () => {
 };*/
 
 
-function renderIcon(place) {
+function renderIcon(currentPosition, place) {
   let scene = document.querySelector('a-scene');
 
       const latitude = place.location.lat;
       const longitude = place.location.lng;
+
+      const distance = haversineDistance(currentPosition, place.location);
+      console.log('distance=' + distance);
 
       // add place icon
       const icon = document.createElement('a-image');
@@ -211,14 +247,17 @@ AFRAME.registerComponent('geoloc', {
     const scene = document.querySelector('a-scene');
     navigator.geolocation.getCurrentPosition(function (position) {
 
+      currentPosition = position.coords;
+      localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
+
       // than use it to load from remote APIs some places nearby
       //loadPlaces(position.coords)
-      getNearbyArticle(position.coords)
+      getNearbyArticle(currentPosition)
                 .then((places) => {
               places.forEach((place) => {
 
                 if (place.image !== null) {
-                  renderIcon(place);
+                  renderIcon(currentPosition, place);
                 }
 /*
                   const latitude = place.location.lat;
