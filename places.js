@@ -207,7 +207,10 @@ function renderIcon(currentPosition, place) {
       console.log(msg);
 
       const p1 = new LatLon(currentPosition.latitude, currentPosition.longitude);
+      console.log('p1=' + p1.lat + ' ' + p1.lon);
       const p2 = new LatLon(place.location.lat, place.location.lng);
+      console.log('p2=' + p2.lat + ' ' + p2.lon);
+      
       const d = p1.distanceTo(p2);
       console.log('d=' + d.toFixed(3));
 
