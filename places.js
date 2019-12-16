@@ -214,7 +214,7 @@ function renderIcon(currentPosition, place) {
       //const mid = p1.midpointTo(p2);
       //console.log('mid=' + mid.toFixed(3));
 
-      const intermediate = p1.intermediatePointTo(p2, 0.01);
+      const intermediate = p1.intermediatePointTo(p2, 0.1);
       console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
 
       const latInter = intermediate.lat;
