@@ -215,6 +215,7 @@ function renderIcon(currentPosition, place) {
       console.log('d=' + d.toFixed(3));
 
       let fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
+      let scale = (d > 1000) ? 50 : (d > 100 ? 30 : 20);
 
       //const mid = p1.midpointTo(p2);
       //console.log('mid=' + mid.toFixed(3));
@@ -235,7 +236,7 @@ function renderIcon(currentPosition, place) {
 
       // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
       //icon.setAttribute('scale', '20, 20');
-      icon.setAttribute('scale', '30, 30');
+      icon.setAttribute('scale', `${scale}, ${scale}`);
 
       icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
