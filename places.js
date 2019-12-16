@@ -210,14 +210,16 @@ function renderIcon(currentPosition, place) {
       console.log('p1=' + p1.lat + ' ' + p1.lon);
       const p2 = new LatLon(place.location.lat, place.location.lng);
       console.log('p2=' + p2.lat + ' ' + p2.lon);
-      
+
       const d = p1.distanceTo(p2);
       console.log('d=' + d.toFixed(3));
+
+      let fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
 
       //const mid = p1.midpointTo(p2);
       //console.log('mid=' + mid.toFixed(3));
 
-      const intermediate = p1.intermediatePointTo(p2, 0.1);
+      const intermediate = p1.intermediatePointTo(p2, fraction);
       console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
 
       const latInter = intermediate.lat;
