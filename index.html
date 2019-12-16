@@ -6,7 +6,15 @@
     <title>GeoAR.js demo</title>
     <script src='./aframe/build/aframe-master.js'></script>
     <script src='./aframe/build/aframe-ar-2.0.7.js'></script>
-    <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script> 
+
+    <script src="./geodesy/latlon-spherical.js"></script>
+
+    <!--script type="module">
+        import LatLon from 'https://cdn.jsdelivr.net/npm/geodesy@2.2.0/latlon-spherical.min.js';
+        //const d = new LatLon(52.205, 0.119).distanceTo(new LatLon(48.857, 2.351));
+    </!--script-->
+
+    <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script>
 
     <script>
         THREEx.ArToolkitContext.baseURL = './three.js/'

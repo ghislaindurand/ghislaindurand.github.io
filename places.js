@@ -190,6 +190,7 @@ window.onload = () => {
   );
 };*/
 
+//import LatLon from './geodesy/latlon-spherical.js';
 
 function renderIcon(currentPosition, place) {
   let scene = document.querySelector('a-scene');
@@ -197,12 +198,33 @@ function renderIcon(currentPosition, place) {
       const latitude = place.location.lat;
       const longitude = place.location.lng;
 
-      const distance = haversineDistance(currentPosition, place.location);
-      console.log('distance=' + distance);
+      const distance = haversineDistance({
+        lat: currentPosition.latitude,
+        lng: currentPosition.longitude
+      }, place.location);
+      const msg = place.name + ' (' + distance.toFixed(3) + ' km)';
+      document.querySelector('a-scene').emit('log', {message: msg});
+      console.log(msg);
+
+      const p1 = new LatLon(currentPosition.latitude, currentPosition.longitude);
+      const p2 = new LatLon(place.location.lat, place.location.lng);
+      const d = p1.distanceTo(p2);
+      console.log('d=' + d.toFixed(3));
+
+      //const mid = p1.midpointTo(p2);
+      //console.log('mid=' + mid.toFixed(3));
+
+      const intermediate = p1.intermediatePointTo(p2, 0.01);
+      console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
+
+      const latInter = intermediate.lat;
+      const lngInter = intermediate.lon;
+
 
       // add place icon
       const icon = document.createElement('a-image');
-      icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+      //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+      icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter}`);
       icon.setAttribute('name', place.name);
       icon.setAttribute('src', place.image);
 
