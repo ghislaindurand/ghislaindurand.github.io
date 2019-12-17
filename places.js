@@ -245,7 +245,7 @@ function renderPlace(currentPosition, place) {
   icon.setAttribute('scale', `${scale}, ${scale}`);
   icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
-
+/*
   const clickListener = (ev) => {
     ev.stopPropagation();
     ev.preventDefault()
@@ -255,19 +255,35 @@ function renderPlace(currentPosition, place) {
       toast(name, 1500);
     }
   };
-  icon.addEventListener('click', clickListener)
+  icon.addEventListener('click', clickListener);*/
+
+  
+  icon.addEventListener('mouseenter', function (ev) {
+    const name = ev.target.getAttribute('name');
+    toast(name, 1500);
+  });
+  /*icon.addEventListener('click', function (ev) {
+    const url = ev.target.getAttribute('src');
+    toast(url, 1500);
+    //document.location = url;
+  });*/
+
   scene.appendChild(icon);
 
-  /* const text = document.createElement('a-link');
-  text.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
-  text.setAttribute('title', place.name);
-  text.setAttribute('href', place.url);
+/*
+  const link = document.createElement('a-link');
+  link.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
+  link.setAttribute('title', place.name);
+  link.setAttribute('href', place.url);
+  
+  link.setAttribute('image', place.image);
+
   //text.setAttribute('scale', '5 5 5');
-  const scale = (d > 1000) ? 5 : (d > 100 ? 10 : 15);
+  //const scale = (d > 1000) ? 5 : (d > 100 ? 10 : 15);
 
-  text.setAttribute('scale', `${scale} ${scale} ${scale}`);
+  link.setAttribute('scale', `${scale} ${scale} ${scale}`);
 
-  text.addEventListener('loaded', () => {
+  link.addEventListener('loaded', () => {
     window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
   });
   const clickListener = (ev) => {
@@ -279,8 +295,15 @@ function renderPlace(currentPosition, place) {
       toast(title, 1500);
     }
   };
-  text.addEventListener('click', clickListener);
-  scene.appendChild(text); */
+  link.addEventListener('click', clickListener);
+
+  link.addEventListener('mouseenter', function (ev) {
+    const title = ev.target.getAttribute('title');
+    toast(title, 1500);
+  });
+
+  scene.appendChild(link);
+  */ 
 
 }
 
@@ -315,45 +338,7 @@ AFRAME.registerComponent('geoloc', {
       maximumAge: 0,
       timeout: 27000,
     };
-    //const scene = document.querySelector('a-scene');
     navigator.geolocation.getCurrentPosition(
-      
-      /*function (position) {
-
-      currentPosition = position.coords;
-      localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
-
-      // than use it to load from remote APIs some places nearby
-      //loadPlaces(position.coords)
-      getNearbyArticle(currentPosition)
-                .then((places) => {
-              places.forEach((place) => {
-
-                if (place.image !== null) {
-                  renderPlace(currentPosition, place);
-                }*/
-/*
-                  const latitude = place.location.lat;
-                  const longitude = place.location.lng;
-
-                  // add place name
-                  const text = document.createElement('a-link');
-                  text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
-                  text.setAttribute('title', place.name);
-                  text.setAttribute('href', place.url);
-                  if (place.image !== null)
-                    text.setAttribute('image', place.image);
-                  text.setAttribute('scale', '25 25 25');
-
-                  //text.addEventListener('loaded', () => {
-                  //    window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
-                  //});
-
-                  scene.appendChild(text);
-                  */
-              /*});
-          })
-      },*/
       geolocSuccess,
       geolocError,
       geolocOptions
