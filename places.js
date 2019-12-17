@@ -42,7 +42,7 @@ function wikiUrl(path, api, mobile) {
 }
 
 async function getNearbyArticle(position) {
-  console.info('Finding nearby article');
+  console.info('Finding nearby article from ' + position.latitude + ' ' + position.longitude);
   const url = wikiUrl('action=query&format=json&origin=*&generator=geosearch&ggsradius=10000&ggsnamespace=0&ggslimit=50&formatversion=2&ggscoord=' + encodeURIComponent(position.latitude) + '%7C' + encodeURIComponent(position.longitude), true, true);
   let pages = localStorage.getItem('cache_url:' + url);
   if (pages === null){
@@ -83,7 +83,7 @@ async function getNearbyArticle(position) {
 }
 
 async function getContent(title) {
-  console.info('Getting content');
+  console.info('Getting content from ' + title);
   const response = await fetchWithTimeout(wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&titles=' + encodeURIComponent(title), true));
   if (!response.ok) {
     console.error('Wikipedia content call failed', response)
@@ -192,88 +192,137 @@ window.onload = () => {
 
 //import LatLon from './geodesy/latlon-spherical.js';
 
+const toast = (mesg, timeout) => {
+  const label = document.createElement('span');
+  const container = document.createElement('div');
+  container.setAttribute('id', 'place-label');
+  label.innerText = mesg;
+  container.appendChild(label);
+  document.body.appendChild(container);
+  setTimeout(() => {
+    container.parentElement.removeChild(container);
+  }, timeout);
+};
+
 function renderIcon(currentPosition, place) {
   let scene = document.querySelector('a-scene');
 
-      const latitude = place.location.lat;
-      const longitude = place.location.lng;
+  const latitude = place.location.lat;
+  const longitude = place.location.lng
+  const distance = haversineDistance({
+    lat: currentPosition.latitude,
+    lng: currentPosition.longitude
+  }, place.location);
+  const msg = place.name + ' (' + distance.toFixed(3) + ' km)';
+  document.querySelector('a-scene').emit('log', {message: msg});
+  console.log(msg);
 
-      const distance = haversineDistance({
-        lat: currentPosition.latitude,
-        lng: currentPosition.longitude
-      }, place.location);
-      const msg = place.name + ' (' + distance.toFixed(3) + ' km)';
-      document.querySelector('a-scene').emit('log', {message: msg});
-      console.log(msg);
+  const p1 = new LatLon(currentPosition.latitude, currentPosition.longitude);
+  console.log('p1=' + p1.lat + ' ' + p1.lon);
+  const p2 = new LatLon(place.location.lat, place.location.lng);
+  console.log('p2=' + p2.lat + ' ' + p2.lon)
+  const d = p1.distanceTo(p2);
+  console.log('d=' + d.toFixed(3))
+  let fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
+  let scale = (d > 1000) ? 50 : (d > 100 ? 30 : 20)
+  //const mid = p1.midpointTo(p2);
+  //console.log('mid=' + mid.toFixed(3))
+  const intermediate = p1.intermediatePointTo(p2, fraction);
+  console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon)
+  const latInter = intermediate.lat;
+  const lngInter = intermediate.lon
 
-      const p1 = new LatLon(currentPosition.latitude, currentPosition.longitude);
-      console.log('p1=' + p1.lat + ' ' + p1.lon);
-      const p2 = new LatLon(place.location.lat, place.location.lng);
-      console.log('p2=' + p2.lat + ' ' + p2.lon);
+  // add place icon
+  /*
+  const icon = document.createElement('a-image');
+  //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+  icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter}`);
+  icon.setAttribute('name', place.name);
+  icon.setAttribute('src', place.image);
+  // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
+  //icon.setAttribute('scale', '20, 20');
+  //icon.setAttribute('scale', `${scale}, ${scale}`);
+  icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
+*/
+  const text = document.createElement('a-link');
+  text.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
+  text.setAttribute('title', place.name);
+  text.setAttribute('href', place.url);
+  text.setAttribute('scale', '5 5 5');
 
-      const d = p1.distanceTo(p2);
-      console.log('d=' + d.toFixed(3));
+  text.addEventListener('loaded', () => {
+      window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
+  });
+  const clickListener = (ev) => {
+    ev.stopPropagation();
+    ev.preventDefault()
+    const title = ev.target.getAttribute('title');
+    const el = ev.detail.intersection && ev.detail.intersection.object.el;
+    if (el && el === ev.target) {
+      toast(title, 1500);
+    }
+  };
+  text.addEventListener('click', clickListener);
+  scene.appendChild(text);
 
-      let fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
-      let scale = (d > 1000) ? 50 : (d > 100 ? 30 : 20);
 
-      //const mid = p1.midpointTo(p2);
-      //console.log('mid=' + mid.toFixed(3));
-
-      const intermediate = p1.intermediatePointTo(p2, fraction);
-      console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
-
-      const latInter = intermediate.lat;
-      const lngInter = intermediate.lon;
-
-
-      // add place icon
-      const icon = document.createElement('a-image');
-      //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
-      icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter}`);
-      icon.setAttribute('name', place.name);
-      icon.setAttribute('src', place.image);
-
-      // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
-      //icon.setAttribute('scale', '20, 20');
-      icon.setAttribute('scale', `${scale}, ${scale}`);
-
-      icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
-
-      const clickListener = function (ev) {
-          ev.stopPropagation();
-          ev.preventDefault();
-
-          const name = ev.target.getAttribute('name');
-
-          const el = ev.detail.intersection && ev.detail.intersection.object.el;
-
-          if (el && el === ev.target) {
-              const label = document.createElement('span');
-              const container = document.createElement('div');
-              container.setAttribute('id', 'place-label');
-              label.innerText = name;
-              container.appendChild(label);
-              document.body.appendChild(container);
-
-              setTimeout(() => {
-                  container.parentElement.removeChild(container);
-              }, 1500);
-          }
-      };
-
-      icon.addEventListener('click', clickListener);
-
-      scene.appendChild(icon);
+  //const clickListener = (ev) => {
+  //  ev.stopPropagation();
+  //  ev.preventDefault()
+  //  const name = ev.target.getAttribute('name');
+  //  const el = ev.detail.intersection && ev.detail.intersection.object.el;
+  //  if (el && el === ev.target) {
+  //    toast(name, 1500);
+  //    /*const label = document.createElement('span');
+  //    const container = document.createElement('div');
+  //    container.setAttribute('id', 'place-label');
+  //    label.innerText = name;
+  //    container.appendChild(label);
+  //    document.body.appendChild(container);
+  //    setTimeout(() => {
+  //      container.parentElement.removeChild(container);
+  //    }, 1500);*/
+  //  }
+  //};
+  //icon.addEventListener('click', clickListener)
+  //scene.appendChild(icon);
 }
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
     // Code here.
     console.log(this.el);
+    toast('getCurrentPosition...', 1000);
 
-    const scene = document.querySelector('a-scene');
-    navigator.geolocation.getCurrentPosition(function (position) {
+    const geolocSuccess = (position) => {
+      currentPosition = position.coords;
+      toast('found position', 1000);
+
+      localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
+      getNearbyArticle(currentPosition)
+        .then((places) => {
+          places.forEach((place) => {
+            if (place.image !== null) {
+              renderIcon(currentPosition, place);
+            }
+          });
+        });
+    };
+    const geolocError = (err) => {
+      console.error('Error in retrieving position', err);
+      toast('position not found : use home', 1000);
+      const home = {latitude: 43.330138, longitude: 5.492356};
+      getNearbyArticle(home);
+    };
+    const geolocOptions = {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 27000,
+    };
+    //const scene = document.querySelector('a-scene');
+    navigator.geolocation.getCurrentPosition(
+      
+      /*function (position) {
 
       currentPosition = position.coords;
       localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
@@ -286,7 +335,7 @@ AFRAME.registerComponent('geoloc', {
 
                 if (place.image !== null) {
                   renderIcon(currentPosition, place);
-                }
+                }*/
 /*
                   const latitude = place.location.lat;
                   const longitude = place.location.lng;
@@ -306,16 +355,13 @@ AFRAME.registerComponent('geoloc', {
 
                   scene.appendChild(text);
                   */
-              });
+              /*});
           })
-  },
-      (err) => console.error('Error in retrieving position', err),
-      {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 27000,
-      }
-  );
+      },*/
+      geolocSuccess,
+      geolocError,
+      geolocOptions
+    );
 
   }
 });

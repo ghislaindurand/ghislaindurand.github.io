@@ -14,7 +14,7 @@
         //const d = new LatLon(52.205, 0.119).distanceTo(new LatLon(48.857, 2.351));
     </!--script-->
 
-    <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script>
+    <!-- <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script> -->
 
     <script>
         THREEx.ArToolkitContext.baseURL = './three.js/'
@@ -36,10 +36,11 @@
         geoloc
         >
 
-        <a-camera gps-camera="minDistance: 40;" rotation-reader>
+        <a-camera gps-camera="minDistance: 20;" rotation-reader>
         </a-camera>
         
-        <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="0 0 -4"></a-entity>
+        <!-- <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="0 0 -4"></a-entity> -->
 
-	</a-scene>
+    </a-scene>
+    <div class="debug"></div>
 </body>
