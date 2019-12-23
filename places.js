@@ -7,6 +7,7 @@ let currentPosition = null;
  * @param {object} latlngA {lat: number, lng: number} point A
  * @param {object} latlngB {lat: number, lng: number} point B
  */
+/*
 const haversineDistance = (latlngA, latlngB) => {
   const toRadian = angle => (Math.PI / 180) * angle;
   const distance = (a, b) => (Math.PI / 180) * (a - b);
@@ -33,6 +34,7 @@ const haversineDistance = (latlngA, latlngB) => {
 
   return finalDistance;
 };
+*/
 
 function wikiUrl(path, api, mobile) {
   const wikiTag = 'fr';
@@ -209,21 +211,25 @@ function renderPlace(currentPosition, place) {
 
   const latitude = place.location.lat;
   const longitude = place.location.lng
-  const distance = haversineDistance({
-    lat: currentPosition.latitude,
-    lng: currentPosition.longitude
-  }, place.location);
-  const txtDistance = (distance >= 1000) ?  distance.toFixed(3) + ' km' : parseInt(distance, 10) + ' m';
-  const msg = place.name + ' (' + txtDistance + ')';
-  //document.querySelector('a-scene').emit('log', {message: msg});
+  //const distance = haversineDistance({
+  //  lat: currentPosition.latitude,
+  //  lng: currentPosition.longitude
+  //}, place.location);
+  //const txtDistance = (distance >= 1000) ? distance.toFixed(3) + ' km' : parseInt(distance, 10) + ' m';
+  const msg = place.name;
+  ////document.querySelector('a-scene').emit('log', {message: msg});
   console.log(msg);
 
   const p1 = new LatLon(currentPosition.latitude, currentPosition.longitude);
-  console.log('p1=' + p1.lat + ' ' + p1.lon);
+  console.log('p1 (currentPosition)=' + p1.lat + ' ' + p1.lon);
+
   const p2 = new LatLon(place.location.lat, place.location.lng);
-  console.log('p2=' + p2.lat + ' ' + p2.lon)
+  console.log('p2 (location)=' + p2.lat + ' ' + p2.lon);
+
   const d = p1.distanceTo(p2);
-  console.log('d=' + d.toFixed(3))
+  const txtDistance = (d >= 1000) ? (d / 1000).toFixed(3) + ' km' : parseInt(d, 10) + ' m';
+  console.log('d (distance)=' + d.toFixed(3));
+
   const fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
   //const mid = p1.midpointTo(p2);
   //console.log('mid=' + mid.toFixed(3))
