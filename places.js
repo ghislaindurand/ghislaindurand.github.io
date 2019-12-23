@@ -1,5 +1,5 @@
 
-let cachePlaces = {};
+//let cachePlaces = {};
 let currentPosition = null;
 
 /**
@@ -40,7 +40,7 @@ function wikiUrl(path, api, mobile) {
   const wikiTag = 'fr';
   let url = 'https://' + wikiTag;
   if (mobile) url += '.m';
-  return url + '.wikipedia.org/' + (api ? 'w/api.php?' : 'wiki/') + path
+  return url + '.wikipedia.org/' + (api ? 'w/api.php?' : 'wiki/') + path;
 }
 
 async function getNearbyArticle(position) {
@@ -50,7 +50,7 @@ async function getNearbyArticle(position) {
   if (pages === null){
     const response = await fetchWithTimeout(url);
     if (!response.ok) {
-      console.error('Wikipedia nearby failed', response)
+      console.error('Wikipedia nearby failed', response);
       throw new Error('Wikipedia nearby is down');
     }
     const json = await response.json();
@@ -88,7 +88,7 @@ async function getContent(title) {
   console.info('Getting content from ' + title);
   const response = await fetchWithTimeout(wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&titles=' + encodeURIComponent(title), true));
   if (!response.ok) {
-    console.error('Wikipedia content call failed', response)
+    console.error('Wikipedia content call failed', response);
     throw new Error('Wikipedia content is down');
   }
   const json = await response.json();
@@ -122,12 +122,13 @@ async function getContent(title) {
 function timeout(time, message) {
   return new Promise((_resolve, reject) => {
     setTimeout(() => reject(new Error('Timeout: ' + message)), time);
-  })
+  });
 }
 
 function fetchWithTimeout(url, paras) {
-  return Promise.race([fetch(url, paras), 
-                       timeout(15 * 1000, 'Fetch timed out for ' + url)]);
+  return Promise.race([
+    fetch(url, paras), 
+    timeout(15 * 1000, 'Fetch timed out for ' + url)]);
 }
 
 function simpleHtmlToText(html) {
@@ -141,7 +142,7 @@ function simpleHtmlToText(html) {
   // This isn't how you pass the Google interview.
   // But it is technically O(n)
   for (let i = 0; i < 10; i++) {
-    text = text.replace(/\([^\)]+\)/g, '');
+    text = text.replace(/\([^)]+\)/g, '');
   }
   return text;
 }
@@ -209,8 +210,8 @@ const toast = (mesg, timeout) => {
 function renderPlace(currentPosition, place) {
   let scene = document.querySelector('a-scene');
 
-  const latitude = place.location.lat;
-  const longitude = place.location.lng
+  //const latitude = place.location.lat;
+  //const longitude = place.location.lng;
   //const distance = haversineDistance({
   //  lat: currentPosition.latitude,
   //  lng: currentPosition.longitude
@@ -236,9 +237,9 @@ function renderPlace(currentPosition, place) {
   const scale = (d > 1000) ? 5 : (d > 100 ? 10 : 15);
 
   const intermediate = p1.intermediatePointTo(p2, fraction);
-  console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon)
+  console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
   const latInter = intermediate.lat;
-  const lngInter = intermediate.lon
+  const lngInter = intermediate.lon;
 
   // add place icon
   
@@ -252,7 +253,7 @@ function renderPlace(currentPosition, place) {
   icon.setAttribute('scale', `${scale}, ${scale}`);
   icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
-/*
+  /*
   const clickListener = (ev) => {
     ev.stopPropagation();
     ev.preventDefault()
@@ -277,7 +278,7 @@ function renderPlace(currentPosition, place) {
 
   scene.appendChild(icon);
 
-/*
+  /*
   const link = document.createElement('a-link');
   link.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
   link.setAttribute('title', place.name);
