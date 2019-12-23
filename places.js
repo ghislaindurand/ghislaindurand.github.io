@@ -213,7 +213,8 @@ function renderPlace(currentPosition, place) {
     lat: currentPosition.latitude,
     lng: currentPosition.longitude
   }, place.location);
-  const msg = place.name + ' (' + distance.toFixed(3) + ' km)';
+  const txtDistance = (distance >= 1000) ?  distance.toFixed(3) + ' km' : parseInt(distance, 10) + ' m';
+  const msg = place.name + ' (' + txtDistance + ')';
   //document.querySelector('a-scene').emit('log', {message: msg});
   console.log(msg);
 
@@ -238,7 +239,7 @@ function renderPlace(currentPosition, place) {
   const icon = document.createElement('a-image');
   //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
   icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
-  icon.setAttribute('name', place.name);
+  icon.setAttribute('name', place.name + ' ' + txtDistance);
   icon.setAttribute('src', place.image);
   // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
   //icon.setAttribute('scale', '20, 20');
