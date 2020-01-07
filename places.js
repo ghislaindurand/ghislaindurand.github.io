@@ -78,7 +78,7 @@ async function getNearbyArticle(position) {
       place = JSON.parse(place);
     }
     places.push(place);
-    if (places.length >= 25) break;
+    if (places.length >= 50) break;
   }
   return places;
   //return null;
@@ -86,7 +86,8 @@ async function getNearbyArticle(position) {
 
 async function getContent(title) {
   console.info('Getting content from ' + title);
-  const response = await fetchWithTimeout(wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&titles=' + encodeURIComponent(title), true));
+  const response = await fetchWithTimeout(
+    wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&piprop=thumbnail&pithumbsize=512&titles=' + encodeURIComponent(title), true));
   if (!response.ok) {
     console.error('Wikipedia content call failed', response);
     throw new Error('Wikipedia content is down');
@@ -94,9 +95,9 @@ async function getContent(title) {
   const json = await response.json();
   const page = Object.values(json.query.pages)[0];
   console.info('Page', page);
-  let image = null;
-  if (page.thumbnail && page.thumbnail.source && /\.(jpe?g|gif|png)$/.test(page.thumbnail.source)) {
-    image = page.thumbnail.source;
+  let thumbnail = null;
+  if (page.thumbnail && page.thumbnail.source && /\.(jpe?g|gif|png)$/i.test(page.thumbnail.source)) {
+    thumbnail = page.thumbnail.source;
   }
   let place = {
     url: wikiUrl(encodeURIComponent(page.title), false),
@@ -114,7 +115,9 @@ async function getContent(title) {
       lat: page.coordinates[0].lat,
       lng: page.coordinates[0].lon,
     } : null,
-    image: image,
+    image: thumbnail,
+    //pageimage: page.pageimage ? page.pageimage : null,
+    //images: page.images ? page.images : null,
   };
   return place;
 }
@@ -234,7 +237,7 @@ function renderPlace(currentPosition, place) {
   const fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
   //const mid = p1.midpointTo(p2);
   //console.log('mid=' + mid.toFixed(3))
-  const scale = (d > 1000) ? 5 : (d > 100 ? 10 : 15);
+  const scale = (d > 1000) ? 5 : (d > 100 ? 7 : 10);
 
   const intermediate = p1.intermediatePointTo(p2, fraction);
   console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
@@ -244,6 +247,7 @@ function renderPlace(currentPosition, place) {
   // add place icon
   
   const icon = document.createElement('a-image');
+  //const icon = document.createElement('a-box');
   //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
   icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
   icon.setAttribute('name', place.name + ' ' + txtDistance);
@@ -251,6 +255,7 @@ function renderPlace(currentPosition, place) {
   // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
   //icon.setAttribute('scale', '20, 20');
   icon.setAttribute('scale', `${scale}, ${scale}`);
+  //icon.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
   /*
