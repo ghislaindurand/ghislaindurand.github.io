@@ -237,7 +237,7 @@ function renderPlace(currentPosition, place) {
   const fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
   //const mid = p1.midpointTo(p2);
   //console.log('mid=' + mid.toFixed(3))
-  const scale = (d > 1000) ? 5 : (d > 100 ? 7 : 10);
+  const scale = (d > 1000) ? 3 : (d > 100 ? 4 : 5);
 
   const intermediate = p1.intermediatePointTo(p2, fraction);
   console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
@@ -246,16 +246,16 @@ function renderPlace(currentPosition, place) {
 
   // add place icon
   
-  const icon = document.createElement('a-image');
-  //const icon = document.createElement('a-box');
+  //const icon = document.createElement('a-image');
+  const icon = document.createElement('a-box');
   //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
   icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
   icon.setAttribute('name', place.name + ' ' + txtDistance);
   icon.setAttribute('src', place.image);
   // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
   //icon.setAttribute('scale', '20, 20');
-  icon.setAttribute('scale', `${scale}, ${scale}`);
-  //icon.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  //icon.setAttribute('scale', `${scale}, ${scale}`);
+  icon.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
   /*
