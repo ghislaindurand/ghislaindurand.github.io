@@ -1,4 +1,7 @@
 
+
+/* global LatLon, AFRAME */
+
 //let cachePlaces = {};
 let currentPosition = null;
 
@@ -234,29 +237,49 @@ function renderPlace(currentPosition, place) {
   const txtDistance = (d >= 1000) ? (d / 1000).toFixed(3) + ' km' : parseInt(d, 10) + ' m';
   console.log('d (distance)=' + d.toFixed(3));
 
-  const fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
-  //const mid = p1.midpointTo(p2);
-  //console.log('mid=' + mid.toFixed(3))
-  const scale = (d > 1000) ? 3 : (d > 100 ? 4 : 5);
+  let fraction = 1;
+  let scale = 5;
+  let simulatedLat = p2.lat;
+  let simulatedLon = p2.lon;
+  if (d > 1000) {
+    fraction = 0.1;
+    scale = 3;
+    const intermediate = p1.intermediatePointTo(p2, fraction);
+    console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
+    simulatedLat = intermediate.lat.toFixed(4);
+    simulatedLon = intermediate.lon.toFixed(4);
+  } else if (d > 100) {
+    fraction = 0.1;
+    scale = 4;
+    const intermediate = p1.intermediatePointTo(p2, fraction);
+    console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
+    simulatedLat = intermediate.lat.toFixed(4);
+    simulatedLon = intermediate.lon.toFixed(4);
+  }
 
-  const intermediate = p1.intermediatePointTo(p2, fraction);
-  console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
-  const latInter = intermediate.lat;
-  const lngInter = intermediate.lon;
+  //const fraction = (d > 1000) ? 0.01 : (d > 100 ? 0.1 : 1);
+  ////const mid = p1.midpointTo(p2);
+  ////console.log('mid=' + mid.toFixed(3))
+  //const scale = (d > 1000) ? 3 : (d > 100 ? 4 : 5);
 
-  // add place icon
+  //const intermediate = p1.intermediatePointTo(p2, fraction);
+  //console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
+  //const latInter = intermediate.lat;
+  //const lngInter = intermediate.lon;
+
+  // add place item
   
-  //const icon = document.createElement('a-image');
-  const icon = document.createElement('a-box');
-  //icon.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
-  icon.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
-  icon.setAttribute('name', place.name + ' ' + txtDistance);
-  icon.setAttribute('src', place.image);
+  //const item = document.createElement('a-image');
+  const item = document.createElement('a-box');
+  //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+  item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+  item.setAttribute('name', place.name + ' ' + txtDistance);
+  item.setAttribute('src', place.image);
   // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
-  //icon.setAttribute('scale', '20, 20');
-  //icon.setAttribute('scale', `${scale}, ${scale}`);
-  icon.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
-  icon.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
+  //item.setAttribute('scale', '20, 20');
+  //item.setAttribute('scale', `${scale}, ${scale}`);
+  item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
   /*
   const clickListener = (ev) => {
@@ -268,20 +291,20 @@ function renderPlace(currentPosition, place) {
       toast(name, 1500);
     }
   };
-  icon.addEventListener('click', clickListener);*/
+  item.addEventListener('click', clickListener);*/
 
   
-  icon.addEventListener('mouseenter', function (ev) {
+  item.addEventListener('mouseenter', function (ev) {
     const name = ev.target.getAttribute('name');
     toast(name, 1500);
   });
-  /*icon.addEventListener('click', function (ev) {
+  /*item.addEventListener('click', function (ev) {
     const url = ev.target.getAttribute('src');
     toast(url, 1500);
     //document.location = url;
   });*/
 
-  scene.appendChild(icon);
+  scene.appendChild(item);
 
   /*
   const link = document.createElement('a-link');
