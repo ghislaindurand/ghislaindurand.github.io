@@ -239,19 +239,19 @@ function renderPlace(currentPosition, place) {
   console.log('d (distance)=' + d.toFixed(3));
 
   let fraction = 1;
-  let scale = 5;
+  let scale = 10;
   let simulatedLat = p2.lat;
   let simulatedLon = p2.lon;
   if (d > 1000) {
     fraction = 0.1;
-    scale = d*fraction/20;
+    scale = d*fraction/10;
     const intermediate = p1.intermediatePointTo(p2, fraction);
     console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
     simulatedLat = intermediate.lat.toFixed(4);
     simulatedLon = intermediate.lon.toFixed(4);
   } else if (d > 100) {
     fraction = 0.1;
-    scale = d*fraction/20;
+    scale = d*fraction/10;
     const intermediate = p1.intermediatePointTo(p2, fraction);
     console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
     simulatedLat = intermediate.lat.toFixed(4);
