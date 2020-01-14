@@ -81,7 +81,7 @@ async function getNearbyArticle(position) {
       place = JSON.parse(place);
     }
     places.push(place);
-    if (places.length >= 50) break;
+    if (places.length >= 25) break;
   }
   return places;
   //return null;
@@ -305,6 +305,23 @@ function renderPlace(currentPosition, place) {
   });*/
 
   scene.appendChild(item);
+
+  const text = document.createElement('a-text');
+  text.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+  //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
+  text.setAttribute('color', '#BBB');
+  text.setAttribute('align', 'center');
+  text.setAttribute('baseline', 'bottom');
+  text.setAttribute('value', `${place.name} ${txtDistance}`);
+  text.setAttribute('position', `0, ${scale/2}, ${scale/2}`);
+  text.setAttribute('scale', `${scale/2}, ${scale/2}`);
+  scene.appendChild(text);
+  /*
+  <a-entity
+  text="value: Hello, A-Frame!; color: #BBB"
+  position="-0.9 0.2 -3"
+  scale="1.5 1.5 1.5"></a-entity>*/
+
 
   /*
   const link = document.createElement('a-link');
