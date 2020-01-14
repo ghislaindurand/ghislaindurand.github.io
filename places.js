@@ -83,6 +83,7 @@ async function getNearbyArticle(position) {
     places.push(place);
     if (places.length >= 25) break;
   }
+  toast('found ' + places.length + ' places', 2000);
   return places;
   //return null;
 }
@@ -364,11 +365,11 @@ AFRAME.registerComponent('geoloc', {
   init: function () {
     // Code here.
     console.log(this.el);
-    toast('getCurrentPosition...', 1000);
+    toast('getCurrentPosition...', 2000);
 
     const geolocSuccess = (position) => {
       currentPosition = position.coords;
-      toast('found position', 1000);
+      toast('found position', 2000);
 
       localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
       getNearbyArticle(currentPosition)
@@ -382,7 +383,7 @@ AFRAME.registerComponent('geoloc', {
     };
     const geolocError = (err) => {
       console.error('Error in retrieving position', err);
-      toast('position not found : use home', 1000);
+      toast('position not found : use home', 2000);
       const home = {latitude: 43.330138, longitude: 5.492356};
       getNearbyArticle(home);
     };
