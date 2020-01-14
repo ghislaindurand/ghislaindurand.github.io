@@ -244,14 +244,14 @@ function renderPlace(currentPosition, place) {
   let simulatedLon = p2.lon;
   if (d > 1000) {
     fraction = 0.1;
-    scale = 3;
+    scale = 15;
     const intermediate = p1.intermediatePointTo(p2, fraction);
     console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
     simulatedLat = intermediate.lat.toFixed(4);
     simulatedLon = intermediate.lon.toFixed(4);
   } else if (d > 100) {
     fraction = 0.1;
-    scale = 4;
+    scale = 10;
     const intermediate = p1.intermediatePointTo(p2, fraction);
     console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
     simulatedLat = intermediate.lat.toFixed(4);
