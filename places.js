@@ -282,6 +282,8 @@ function renderPlace(currentPosition, place) {
   item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
 
+
+
   /*
   const clickListener = (ev) => {
     ev.stopPropagation();
@@ -316,6 +318,7 @@ function renderPlace(currentPosition, place) {
   text.setAttribute('value', `${place.name} ${txtDistance}`);
   text.setAttribute('position', `0, ${scale/2}, ${scale/2}`);
   text.setAttribute('scale', `${scale/2}, ${scale/2}`);
+  text.setAttribute('look-at', '[gps-camera]');
   scene.appendChild(text);
   /*
   <a-entity
