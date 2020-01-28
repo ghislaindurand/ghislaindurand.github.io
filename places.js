@@ -270,17 +270,18 @@ function renderPlace(currentPosition, place) {
 
   // add place item
   
-  //const item = document.createElement('a-image');
-  const item = document.createElement('a-box');
+  const item = document.createElement('a-image');
+  //const item = document.createElement('a-box');
   //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
   item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
   item.setAttribute('name', place.name + ' ' + txtDistance);
   item.setAttribute('src', place.image);
   // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
   //item.setAttribute('scale', '20, 20');
-  //item.setAttribute('scale', `${scale}, ${scale}`);
-  item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  item.setAttribute('scale', `${scale}, ${scale}`);
+  //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
+  item.setAttribute('look-at', '[gps-camera]');
 
 
 
@@ -312,7 +313,7 @@ function renderPlace(currentPosition, place) {
   const text = document.createElement('a-text');
   text.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
   //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
-  text.setAttribute('color', '#BBB');
+  text.setAttribute('color', '#fff');
   text.setAttribute('align', 'center');
   text.setAttribute('baseline', 'bottom');
   text.setAttribute('value', `${place.name} ${txtDistance}`);
