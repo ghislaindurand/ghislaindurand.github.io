@@ -317,7 +317,7 @@ function renderPlace(currentPosition, place) {
   text.setAttribute('align', 'center');
   text.setAttribute('baseline', 'bottom');
   text.setAttribute('value', `${place.name} ${txtDistance}`);
-  text.setAttribute('position', `0, ${scale/2}, ${scale/2}`);
+  text.setAttribute('position', `0, ${scale}, 0`);
   text.setAttribute('scale', `${scale/2}, ${scale/2}`);
   text.setAttribute('look-at', '[gps-camera]');
   scene.appendChild(text);
