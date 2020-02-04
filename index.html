@@ -1,27 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>GeoAR.js demo</title>
-    <script src="./aframe/build/aframe-v1.0.3.js"></script>
-    <script src="./aframe/build/aframe-ar-2.1.8.js"></script>
-
-    <script src="./geodesy/latlon-spherical.js"></script>
-
-    <script src="./components/aframe-look-at-component.min.js"></script>
-
-    <!-- script src="./components/aframe-event-set-component.js"></script -->
-
-    <!-- script type="module">
-        import LatLon from 'https://cdn.jsdelivr.net/npm/geodesy@2.2.0/latlon-spherical.min.js';
-        //const d = new LatLon(52.205, 0.119).distanceTo(new LatLon(48.857, 2.351));
-    </script-->
-
-    <!-- <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script> -->
-    <script>
-        THREEx.ArToolkitContext.baseURL = './three.js/'
-    </script>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>GeoAR.js demo</title>
+  <script src="./aframe/build/aframe-v1.0.3.js"></script>
+  <script src="./aframe/build/aframe-ar-2.1.8.js"></script>
+  <script src="./geodesy/latlon-spherical.js"></script>
+  <script src="./components/aframe-look-at-component.min.js"></script>
+  <!-- script src="./components/aframe-event-set-component.js"></script -->
+  <!-- script type="module">
+      import LatLon from 'https://cdn.jsdelivr.net/npm/geodesy@2.2.0/latlon-spherical.min.js';
+      //const d = new LatLon(52.205, 0.119).distanceTo(new LatLon(48.857, 2.351));
+  </script-->
+  <!-- <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script> -->
+  <script>
+      THREEx.ArToolkitContext.baseURL = './three.js/'
+  </script>
 </head>
 
 <link rel="stylesheet" href="./index.css">
@@ -30,34 +25,31 @@
 <script src="./places.js"></script>
 
 <body style='margin: 0; overflow: hidden;'>
-    <a-scene
-        cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;'
-        raycaster="objects: [gps-entity-place];"
-        vr-mode-ui="enabled: false"
-		embedded
-        arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;'
-        geoloc
-        gps-camera-debug
-        stats
-        >
-        <!-- loading-screen="dotsColor: red; backgroundColor: black" -->
-
-        <!-- <a-camera gps-camera="minDistance: 20;" rotation-reader> -->
-        <a-camera gps-camera rotation-reader>
-            <a-entity cursor
-            position="0 0 -1"
-            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-            material="color: black; shader: flat">
-           </a-entity>
-                <!-- <a-entity cursor="fuse: true; fuseTimeout: 500"
-            position="0 0 -1"
-            geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
-            material="color: white; shader: flat"> -->
-            <!-- <a-cursor></a-cursor> -->
-        </a-camera>
-        
-        <!-- <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="0 0 -4"></a-entity> -->
-
-    </a-scene>
-    <div class="debug"></div>
+  <a-scene
+    cursor='rayOrigin: mouse; fuse: true; fuseTimeout: 0;'
+    raycaster="objects: [gps-entity-place];"
+    vr-mode-ui="enabled: false"
+	  embedded
+    arjs='sourceType: webcam; sourceWidth:1280; sourceHeight:960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;'
+    geoloc
+    gps-camera-debug
+    >
+    <!-- loading-screen="dotsColor: red; backgroundColor: black" -->
+    <!-- <a-camera gps-camera="minDistance: 20;" rotation-reader> -->
+    <a-camera gps-camera rotation-reader>
+      <a-entity cursor
+        position="0 0 -1"
+        geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+        material="color: black; shader: flat"
+        ></a-entity>
+        <!-- <a-entity cursor="fuse: true; fuseTimeout: 500"
+        position="0 0 -1"
+        geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+        material="color: white; shader: flat"> -->
+        <!-- <a-cursor></a-cursor> -->
+    </a-camera>
+    <!-- <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="0 0 -4"></a-entity> -->
+  </a-scene>
+  <div class="debug"></div>
 </body>
+</html>
