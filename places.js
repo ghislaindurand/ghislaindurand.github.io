@@ -311,13 +311,21 @@ function renderPlace(currentPosition, place) {
   scene.appendChild(item);
 
   const text = document.createElement('a-text');
+
+  //geometry="primitive: plane; width: auto; height: auto" material="color: #333"
+  //text.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
+  //text.setAttribute('material', 'color: #333');
+
+
+  text.setAttribute('font', 'roboto');
+
   text.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
   //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
-  text.setAttribute('color', '#fff');
+  //text.setAttribute('color', '#fff');
   text.setAttribute('align', 'center');
   text.setAttribute('baseline', 'bottom');
-  text.setAttribute('value', `${place.name} ${txtDistance}`);
-  text.setAttribute('position', `0, ${scale}, 0`);
+  text.setAttribute('value', `${place.name}\n${txtDistance}`);
+  text.setAttribute('position', `0, ${scale/2}, 0`);
   text.setAttribute('scale', `${scale/2}, ${scale/2}`);
   text.setAttribute('look-at', '[gps-camera]');
   scene.appendChild(text);
@@ -365,11 +373,21 @@ function renderPlace(currentPosition, place) {
 
 }
 
+function renderPlaces(currentPosition, places) {
+  places.forEach((place) => {
+    if (place.image !== null) {
+      renderPlace(currentPosition, place);
+    }
+  });
+}
+
 AFRAME.registerComponent('geoloc', {
   init: function () {
     // Code here.
     console.log(this.el);
     toast('getCurrentPosition...', 2000);
+
+
 
     const geolocSuccess = (position) => {
       currentPosition = position.coords;
@@ -378,18 +396,25 @@ AFRAME.registerComponent('geoloc', {
       localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
       getNearbyArticle(currentPosition)
         .then((places) => {
-          places.forEach((place) => {
-            if (place.image !== null) {
-              renderPlace(currentPosition, place);
-            }
-          });
+          renderPlaces(currentPosition, places);
         });
     };
+  
     const geolocError = (err) => {
       console.error('Error in retrieving position', err);
-      toast('position not found : use home', 2000);
-      const home = {latitude: 43.330138, longitude: 5.492356};
-      getNearbyArticle(home);
+      const lastPosition = localStorage.getItem('lastPosition');
+      if (lastPosition !== null) {
+        currentPosition = JSON.parse(lastPosition);
+        toast('position not found : use last position found', 2000);
+      } else {
+        currentPosition = {latitude: 43.330138, longitude: 5.492356};
+        toast('position not found : use home', 2000);
+      }
+
+      getNearbyArticle(currentPosition)
+        .then((places) => {
+          renderPlaces(currentPosition, places);
+        });
     };
     const geolocOptions = {
       enableHighAccuracy: true,
