@@ -243,17 +243,17 @@ function renderPlace(currentPosition, place) {
   let simulatedLat = p2.lat;
   let simulatedLon = p2.lon;
   if (d > 1000) {
-    fraction = 0.1;
-    scale = d*fraction/10;
+    fraction = (100/d)*3;
+    //scale = d*fraction/10;
     const intermediate = p1.intermediatePointTo(p2, fraction);
-    console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
+    console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon + ' distance=' + p1.distanceTo(intermediate));
     simulatedLat = intermediate.lat.toFixed(4);
     simulatedLon = intermediate.lon.toFixed(4);
   } else if (d > 100) {
-    fraction = 0.1;
-    scale = d*fraction/10;
+    fraction = (100/d)*2;
+    //scale = d*fraction/10;
     const intermediate = p1.intermediatePointTo(p2, fraction);
-    console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon);
+    console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon + ' distance=' + p1.distanceTo(intermediate));
     simulatedLat = intermediate.lat.toFixed(4);
     simulatedLon = intermediate.lon.toFixed(4);
   }
@@ -387,8 +387,6 @@ AFRAME.registerComponent('geoloc', {
     console.log(this.el);
     toast('getCurrentPosition...', 2000);
 
-
-
     const geolocSuccess = (position) => {
       currentPosition = position.coords;
       toast('found position', 2000);
@@ -426,6 +424,23 @@ AFRAME.registerComponent('geoloc', {
       geolocError,
       geolocOptions
     );
+    /*
+    const watchSuccess = (position) => {
+      currentPosition = position.coords;
+      toast('watchSuccess found position', 2000);
 
+      localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
+      getNearbyArticle(currentPosition)
+        .then((places) => {
+          renderPlaces(currentPosition, places);
+        });
+    };
+    const watchError = (err) => {
+      console.error('Error in retrieving position watchError', err);
+
+    };
+
+    let id = navigator.geolocation.watchPosition(watchSuccess, watchError, geolocOptions);
+*/
   }
 });
