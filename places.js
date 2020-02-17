@@ -318,16 +318,23 @@ function renderPlace(currentPosition, place) {
     item.setAttribute('src', place.image);
     // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
     //item.setAttribute('scale', '20, 20');
+    item.setAttribute('initialScale', scale);
     item.setAttribute('scale', `${scale}, ${scale}`);
     //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
     //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
     item.setAttribute('look-at', '[gps-camera]');
 
     item.addEventListener('mouseenter', function (ev) {
+      const initialScale = ev.target.getAttribute('initialScale');
+      item.setAttribute('scale', `${initialScale*2}, ${initialScale*2}`);
       const name = ev.target.getAttribute('name');
       toast(name, 1500);
     });
-  
+    item.addEventListener('mouseleave', function (ev) {
+      const initialScale = ev.target.getAttribute('initialScale');
+      item.setAttribute('scale', `${initialScale}, ${initialScale}`);
+    });
+ 
     scene.appendChild(item);
   }
 
