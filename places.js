@@ -46,8 +46,42 @@ function wikiUrl(path, api, mobile) {
   return url + '.wikipedia.org/' + (api ? 'w/api.php?' : 'wiki/') + path;
 }
 
+async function getOSMPlaces(position) {
+  console.info('Finding nearby nodes in OSM from ' + position.latitude + ' ' + position.longitude);
+  //const url = wikiUrl('action=query&format=json&origin=*&generator=geosearch&ggsradius=10000&ggsnamespace=0&ggslimit=50&formatversion=2&ggscoord=' + encodeURIComponent(position.latitude) + '%7C' + encodeURIComponent(position.longitude), true, true);
+  const nodeQuery =  'node["natural"="peak"](around:10000,' + position.latitude + ',' + position.longitude + ');';
+  const query = '?data=[out:json][timeout:15];(' + nodeQuery + ');out body geom;';
+  const baseUrl = 'http://overpass-api.de/api/interpreter';
+  const resultUrl = baseUrl + query;
+  const response = await fetchWithTimeout(resultUrl);
+  if (!response.ok) {
+    console.error('OSM nearby failed', response);
+    throw new Error('OSM nearby is down');
+  }
+  const osmDataAsJson = await response.json();
+  console.info('Nearby response', osmDataAsJson);
+  let places = [];
+  for (let node of osmDataAsJson.elements) {
+    const title = node.tags.name;
+    console.info('Title', title);
+    const place = {
+      name: node.tags.name,
+      location: {
+        lat: node.lat,
+        lng: node.lon
+      }
+    };
+    places.push(place);
+    if (places.length >= 25) break;
+  }
+
+  toast('found ' + places.length + ' places', 2000);
+  return places;
+}
+
 async function getNearbyArticle(position) {
-  console.info('Finding nearby article from ' + position.latitude + ' ' + position.longitude);
+
+  console.info('Finding nearby article in Wikipedia from ' + position.latitude + ' ' + position.longitude);
   const url = wikiUrl('action=query&format=json&origin=*&generator=geosearch&ggsradius=10000&ggsnamespace=0&ggslimit=50&formatversion=2&ggscoord=' + encodeURIComponent(position.latitude) + '%7C' + encodeURIComponent(position.longitude), true, true);
   let pages = localStorage.getItem('cache_url:' + url);
   if (pages === null){
@@ -83,6 +117,12 @@ async function getNearbyArticle(position) {
     places.push(place);
     if (places.length >= 25) break;
   }
+
+  const osmPlaces = await getOSMPlaces(position);
+  if (osmPlaces.length) {
+    places = [...places, ...osmPlaces];
+  }
+
   toast('found ' + places.length + ' places', 2000);
   return places;
   //return null;
@@ -269,21 +309,27 @@ function renderPlace(currentPosition, place) {
   //const lngInter = intermediate.lon;
 
   // add place item
+  if (place.image) {
+    const item = document.createElement('a-image');
+    //const item = document.createElement('a-box');
+    //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+    item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    item.setAttribute('name', place.name + ' ' + txtDistance);
+    item.setAttribute('src', place.image);
+    // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
+    //item.setAttribute('scale', '20, 20');
+    item.setAttribute('scale', `${scale}, ${scale}`);
+    //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
+    item.setAttribute('look-at', '[gps-camera]');
+
+    item.addEventListener('mouseenter', function (ev) {
+      const name = ev.target.getAttribute('name');
+      toast(name, 1500);
+    });
   
-  const item = document.createElement('a-image');
-  //const item = document.createElement('a-box');
-  //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
-  item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
-  item.setAttribute('name', place.name + ' ' + txtDistance);
-  item.setAttribute('src', place.image);
-  // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
-  //item.setAttribute('scale', '20, 20');
-  item.setAttribute('scale', `${scale}, ${scale}`);
-  //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
-  //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
-  item.setAttribute('look-at', '[gps-camera]');
-
-
+    scene.appendChild(item);
+  }
 
   /*
   const clickListener = (ev) => {
@@ -298,17 +344,13 @@ function renderPlace(currentPosition, place) {
   item.addEventListener('click', clickListener);*/
 
   
-  item.addEventListener('mouseenter', function (ev) {
-    const name = ev.target.getAttribute('name');
-    toast(name, 1500);
-  });
   /*item.addEventListener('click', function (ev) {
     const url = ev.target.getAttribute('src');
     toast(url, 1500);
     //document.location = url;
   });*/
 
-  scene.appendChild(item);
+
 
   const text = document.createElement('a-text');
 
@@ -417,7 +459,7 @@ AFRAME.registerComponent('geoloc', {
     const geolocOptions = {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 27000,
+      timeout: 10000,
     };
     navigator.geolocation.getCurrentPosition(
       geolocSuccess,
