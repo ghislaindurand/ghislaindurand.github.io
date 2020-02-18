@@ -66,6 +66,7 @@ async function getOSMPlaces(position) {
     console.info('Title', title);
     const place = {
       name: node.tags.name,
+      type: 'peak',
       location: {
         lat: node.lat,
         lng: node.lon
@@ -201,44 +202,6 @@ function remove(element) {
   return element.parentElement.removeChild(element);
 }
 
-/*
-window.onload = () => {
-  const scene = document.querySelector('a-scene');
-
-  // first get current user location
-  return navigator.geolocation.getCurrentPosition(function (position) {
-
-      // than use it to load from remote APIs some places nearby
-      //loadPlaces(position.coords)
-      getNearbyArticle(position.coords)
-                .then((places) => {
-              places.forEach((place) => {
-                  const latitude = place.location.lat;
-                  const longitude = place.location.lng;
-
-                  // add place name
-                  const text = document.createElement('a-link');
-                  text.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude};`);
-                  text.setAttribute('title', place.name);
-                  text.setAttribute('href', place.url);
-                  text.setAttribute('scale', '25 25 25');
-
-                  //text.addEventListener('loaded', () => {
-                  //    window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
-                  //});
-
-                  scene.appendChild(text);
-              });
-          })
-  },
-      (err) => console.error('Error in retrieving position', err),
-      {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 27000,
-      }
-  );
-};*/
 
 //import LatLon from './geodesy/latlon-spherical.js';
 
@@ -318,24 +281,42 @@ function renderPlace(currentPosition, place) {
     item.setAttribute('src', place.image);
     // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
     //item.setAttribute('scale', '20, 20');
-    item.setAttribute('initialScale', scale);
+    item.setAttribute('data-initialScale', scale);
     item.setAttribute('scale', `${scale}, ${scale}`);
     //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
     //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
     item.setAttribute('look-at', '[gps-camera]');
 
+    if (place.url) {
+      item.setAttribute('data-url', place.url);
+    }
+
     item.addEventListener('mouseenter', function (ev) {
-      const initialScale = ev.target.getAttribute('initialScale');
+      const initialScale = ev.target.getAttribute('data-initialScale');
       item.setAttribute('scale', `${initialScale*2}, ${initialScale*2}`);
       const name = ev.target.getAttribute('name');
       toast(name, 1500);
     });
     item.addEventListener('mouseleave', function (ev) {
-      const initialScale = ev.target.getAttribute('initialScale');
+      const initialScale = ev.target.getAttribute('data-initialScale');
       item.setAttribute('scale', `${initialScale}, ${initialScale}`);
+    });
+    item.addEventListener('click', function (ev) {
+      const url = ev.target.getAttribute('data-url');
+      document.location = url;
     });
  
     scene.appendChild(item);
+  }
+  if (place.type) {
+    const entity = document.createElement('a-entity');
+    entity.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
+    entity.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    entity.setAttribute('name', place.name + ' ' + txtDistance);
+    entity.setAttribute('data-initialScale', scale);
+    entity.setAttribute('scale', `${scale}, ${scale}`);
+    entity.setAttribute('look-at', '[gps-camera]');
+    scene.appendChild(entity);
   }
 
   /*
