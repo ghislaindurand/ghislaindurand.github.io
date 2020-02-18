@@ -46,11 +46,15 @@ function wikiUrl(path, api, mobile) {
   return url + '.wikipedia.org/' + (api ? 'w/api.php?' : 'wiki/') + path;
 }
 
-async function getOSMPlaces(position) {
+async function getOSMPlaces(position, options) {
+  options = options || {};
+  options.node = options.node || '"natural"="peak"';
+  options.around = options.around || 10000;  // distance in meters
+  options.timeout = options.timeout || 15;  // timeout in seconds
+
   console.info('Finding nearby nodes in OSM from ' + position.latitude + ' ' + position.longitude);
-  //const url = wikiUrl('action=query&format=json&origin=*&generator=geosearch&ggsradius=10000&ggsnamespace=0&ggslimit=50&formatversion=2&ggscoord=' + encodeURIComponent(position.latitude) + '%7C' + encodeURIComponent(position.longitude), true, true);
-  const nodeQuery =  'node["natural"="peak"](around:10000,' + position.latitude + ',' + position.longitude + ');';
-  const query = '?data=[out:json][timeout:15];(' + nodeQuery + ');out body geom;';
+  const nodeQuery = 'node[' + options.node + '](around:' + options.around + ',' + position.latitude + ',' + position.longitude + ');';
+  const query = '?data=[out:json][timeout:' + options.timeout + '];(' + nodeQuery + ');out body geom;';
   const baseUrl = 'http://overpass-api.de/api/interpreter';
   const resultUrl = baseUrl + query;
   const response = await fetchWithTimeout(resultUrl);
@@ -65,6 +69,7 @@ async function getOSMPlaces(position) {
     const title = node.tags.name;
     console.info('Title', title);
     const place = {
+      origin: 'OSM',
       name: node.tags.name,
       type: 'peak',
       location: {
@@ -145,6 +150,7 @@ async function getContent(title) {
     thumbnail = page.thumbnail.source;
   }
   let place = {
+    origin: 'Wikipedia',
     url: wikiUrl(encodeURIComponent(page.title), false),
     title: page.title,
     label: page.title,
@@ -218,7 +224,7 @@ const toast = (mesg, timeout) => {
 };
 
 function renderPlace(currentPosition, place) {
-  let scene = document.querySelector('a-scene');
+  const scene = document.querySelector('a-scene');
 
   //const latitude = place.location.lat;
   //const longitude = place.location.lng;
@@ -277,7 +283,7 @@ function renderPlace(currentPosition, place) {
     //const item = document.createElement('a-box');
     //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
     item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
-    item.setAttribute('name', place.name + ' ' + txtDistance);
+    item.setAttribute('data-name', place.name + ' ' + txtDistance);
     item.setAttribute('src', place.image);
     // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
     //item.setAttribute('scale', '20, 20');
@@ -290,54 +296,23 @@ function renderPlace(currentPosition, place) {
     if (place.url) {
       item.setAttribute('data-url', place.url);
     }
-
-    item.addEventListener('mouseenter', function (ev) {
-      const initialScale = ev.target.getAttribute('data-initialScale');
-      item.setAttribute('scale', `${initialScale*2}, ${initialScale*2}`);
-      const name = ev.target.getAttribute('name');
-      toast(name, 1500);
-    });
-    item.addEventListener('mouseleave', function (ev) {
-      const initialScale = ev.target.getAttribute('data-initialScale');
-      item.setAttribute('scale', `${initialScale}, ${initialScale}`);
-    });
-    item.addEventListener('click', function (ev) {
-      const url = ev.target.getAttribute('data-url');
-      document.location = url;
-    });
+    item.setAttribute('cursor-listener', '');
  
     scene.appendChild(item);
   }
   if (place.type) {
     const entity = document.createElement('a-entity');
     entity.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
+    entity.setAttribute('material', 'color: #4CC3D9;');
     entity.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
-    entity.setAttribute('name', place.name + ' ' + txtDistance);
+    entity.setAttribute('data-name', place.name + ' ' + txtDistance);
     entity.setAttribute('data-initialScale', scale);
     entity.setAttribute('scale', `${scale}, ${scale}`);
-    entity.setAttribute('look-at', '[gps-camera]');
+    //entity.setAttribute('look-at', '[gps-camera]');
+    entity.setAttribute('cursor-listener', '');
+
     scene.appendChild(entity);
   }
-
-  /*
-  const clickListener = (ev) => {
-    ev.stopPropagation();
-    ev.preventDefault()
-    const name = ev.target.getAttribute('name');
-    const el = ev.detail.intersection && ev.detail.intersection.object.el;
-    if (el && el === ev.target) {
-      toast(name, 1500);
-    }
-  };
-  item.addEventListener('click', clickListener);*/
-
-  
-  /*item.addEventListener('click', function (ev) {
-    const url = ev.target.getAttribute('src');
-    toast(url, 1500);
-    //document.location = url;
-  });*/
-
 
 
   const text = document.createElement('a-text');
@@ -355,51 +330,10 @@ function renderPlace(currentPosition, place) {
   text.setAttribute('align', 'center');
   text.setAttribute('baseline', 'bottom');
   text.setAttribute('value', `${place.name}\n${txtDistance}`);
-  text.setAttribute('position', `0, ${scale/2}, 0`);
+  text.setAttribute('position', `0, ${scale/2}, -1`);
   text.setAttribute('scale', `${scale/2}, ${scale/2}`);
   text.setAttribute('look-at', '[gps-camera]');
   scene.appendChild(text);
-  /*
-  <a-entity
-  text="value: Hello, A-Frame!; color: #BBB"
-  position="-0.9 0.2 -3"
-  scale="1.5 1.5 1.5"></a-entity>*/
-
-
-  /*
-  const link = document.createElement('a-link');
-  link.setAttribute('gps-entity-place', `latitude: ${latInter}; longitude: ${lngInter};`);
-  link.setAttribute('title', place.name);
-  link.setAttribute('href', place.url);
-  
-  link.setAttribute('image', place.image);
-
-  //text.setAttribute('scale', '5 5 5');
-  //const scale = (d > 1000) ? 5 : (d > 100 ? 10 : 15);
-
-  link.setAttribute('scale', `${scale} ${scale} ${scale}`);
-
-  link.addEventListener('loaded', () => {
-    window.dispatchEvent(new CustomEvent('gps-entity-place-loaded'))
-  });
-  const clickListener = (ev) => {
-    ev.stopPropagation();
-    ev.preventDefault()
-    const title = ev.target.getAttribute('title');
-    const el = ev.detail.intersection && ev.detail.intersection.object.el;
-    if (el && el === ev.target) {
-      toast(title, 1500);
-    }
-  };
-  link.addEventListener('click', clickListener);
-
-  link.addEventListener('mouseenter', function (ev) {
-    const title = ev.target.getAttribute('title');
-    toast(title, 1500);
-  });
-
-  scene.appendChild(link);
-  */ 
 
 }
 
@@ -413,7 +347,6 @@ function renderPlaces(currentPosition, places) {
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
-    // Code here.
     console.log(this.el);
     toast('getCurrentPosition...', 2000);
 
@@ -431,9 +364,9 @@ AFRAME.registerComponent('geoloc', {
     const geolocError = (err) => {
       console.error('Error in retrieving position', err);
       const lastPosition = localStorage.getItem('lastPosition');
-      if (lastPosition !== null) {
+      if (lastPosition) {
         currentPosition = JSON.parse(lastPosition);
-        toast('position not found : use last position found', 2000);
+        toast('position not found : use last position found (' + lastPosition + ')', 2000);
       } else {
         currentPosition = {latitude: 43.330138, longitude: 5.492356};
         toast('position not found : use home', 2000);
@@ -472,5 +405,44 @@ AFRAME.registerComponent('geoloc', {
 
     let id = navigator.geolocation.watchPosition(watchSuccess, watchError, geolocOptions);
 */
+  }
+});
+
+// Component to change to a sequential color on click.
+AFRAME.registerComponent('cursor-listener', {
+  init: function () {
+    /*
+    var lastIndex = -1;
+    var COLORS = ['red', 'green', 'blue'];
+    this.el.addEventListener('click', function (evt) {
+      lastIndex = (lastIndex + 1) % COLORS.length;
+      this.setAttribute('material', 'color', COLORS[lastIndex]);
+      console.log('I was clicked at: ', evt.detail.intersection.point);
+    });*/
+
+
+    this.el.addEventListener('mouseenter', function (_ev) {
+      const initialScale = this.getAttribute('data-initialScale');
+      this.setAttribute('scale', `${initialScale*2}, ${initialScale*2}`);
+      const name = this.getAttribute('data-name');
+      toast(name, 1500);
+    });
+
+    this.el.addEventListener('mouseleave', function (_ev) {
+      const initialScale = this.getAttribute('data-initialScale');
+      this.setAttribute('scale', `${initialScale}, ${initialScale}`);
+    });
+
+    this.el.addEventListener('click', function (_ev) {
+      const url = this.getAttribute('data-url');
+      if (url) {
+        document.location = url;
+        return;
+      }
+      const name = this.getAttribute('data-name');
+      toast(name, 1500);
+    });
+ 
+
   }
 });
