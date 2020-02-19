@@ -68,14 +68,18 @@ async function getOSMPlaces(position, options) {
   for (let node of osmDataAsJson.elements) {
     const title = node.tags.name;
     console.info('Title', title);
+    if (!title) {
+      continue;
+    }
     let place = {
       origin: 'OSM',
       name: node.tags.name,
-      type: 'peak',
+      node: options.node,
       location: {
         lat: node.lat,
         lng: node.lon
-      }
+      },
+      tags: node.tags
     };
     if (node.tags.website) {
       place.url = node.tags.website;
@@ -127,15 +131,21 @@ async function getNearbyArticle(position) {
     if (places.length >= 25) break;
   }
 
-  const osmPlaces = await getOSMPlaces(position);
-  if (osmPlaces.length) {
-    places = [...places, ...osmPlaces];
+  const osmPlacesPeak = await getOSMPlaces(position);
+  if (osmPlacesPeak.length) {
+    places = [...places, ...osmPlacesPeak];
   }
   const osmPlacesTourism = await getOSMPlaces(position, {
     node: '"tourism"~"attraction|museum"'
   });
   if (osmPlacesTourism.length) {
     places = [...places, ...osmPlacesTourism];
+  }
+  const osmPlacesHistoric = await getOSMPlaces(position, {
+    node: '"historic"'
+  });
+  if (osmPlacesHistoric.length) {
+    places = [...places, ...osmPlacesHistoric];
   }
 
   toast('found ' + places.length + ' places', 2000);
@@ -253,8 +263,8 @@ function renderPlace(currentPosition, place) {
   console.log('p2 (location)=' + p2.lat + ' ' + p2.lon);
 
   const d = p1.distanceTo(p2);
-  const txtDistance = (d >= 1000) ? (d / 1000).toFixed(3) + ' km' : parseInt(d, 10) + ' m';
-  console.log('d (distance)=' + d.toFixed(3));
+  const txtDistance = (d >= 1000) ? (d / 1000).toFixed(1) + ' km' : parseInt(d, 10) + ' m';
+  console.log('d (distance)=' + txtDistance);
 
   let fraction = 1;
   let scale = 10;
@@ -287,7 +297,7 @@ function renderPlace(currentPosition, place) {
   //const lngInter = intermediate.lon;
 
   // add place item
-  if (place.image) {
+  if (place.origin === 'Wikipedia' && place.image) {
     const item = document.createElement('a-image');
     //const item = document.createElement('a-box');
     //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
@@ -309,14 +319,20 @@ function renderPlace(currentPosition, place) {
  
     scene.appendChild(item);
   }
-  if (place.type) {
+  if (place.origin === 'OSM') {
     const entity = document.createElement('a-entity');
-    entity.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
-    entity.setAttribute('material', 'color: #4CC3D9;');
     entity.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
     entity.setAttribute('data-name', place.name + ' ' + txtDistance);
     entity.setAttribute('data-initialScale', scale);
-    entity.setAttribute('scale', `${scale}, ${scale}`);
+    if (place.tags && place.tags.natural && place.tags.natural === 'peak') {
+      entity.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
+      entity.setAttribute('material', 'color: #4CffD9;');
+      entity.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    } else {
+      entity.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
+      entity.setAttribute('material', 'color: #6666ff;');
+      entity.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    }
     //entity.setAttribute('look-at', '[gps-camera]');
     if (place.url) {
       entity.setAttribute('data-url', place.url);
