@@ -68,7 +68,7 @@ async function getOSMPlaces(position, options) {
   for (let node of osmDataAsJson.elements) {
     const title = node.tags.name;
     console.info('Title', title);
-    const place = {
+    let place = {
       origin: 'OSM',
       name: node.tags.name,
       type: 'peak',
@@ -77,6 +77,9 @@ async function getOSMPlaces(position, options) {
         lng: node.lon
       }
     };
+    if (node.tags.website) {
+      place.url = node.tags.website;
+    }
     places.push(place);
     if (places.length >= 25) break;
   }
@@ -127,6 +130,12 @@ async function getNearbyArticle(position) {
   const osmPlaces = await getOSMPlaces(position);
   if (osmPlaces.length) {
     places = [...places, ...osmPlaces];
+  }
+  const osmPlacesTourism = await getOSMPlaces(position, {
+    node: '"tourism"~"attraction|museum"'
+  });
+  if (osmPlacesTourism.length) {
+    places = [...places, ...osmPlacesTourism];
   }
 
   toast('found ' + places.length + ' places', 2000);
@@ -309,6 +318,9 @@ function renderPlace(currentPosition, place) {
     entity.setAttribute('data-initialScale', scale);
     entity.setAttribute('scale', `${scale}, ${scale}`);
     //entity.setAttribute('look-at', '[gps-camera]');
+    if (place.url) {
+      entity.setAttribute('data-url', place.url);
+    }
     entity.setAttribute('cursor-listener', '');
 
     scene.appendChild(entity);
