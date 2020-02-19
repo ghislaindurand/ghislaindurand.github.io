@@ -55,7 +55,7 @@ async function getOSMPlaces(position, options) {
   console.info('Finding nearby nodes in OSM from ' + position.latitude + ' ' + position.longitude);
   const nodeQuery = 'node[' + options.node + '](around:' + options.around + ',' + position.latitude + ',' + position.longitude + ');';
   const query = '?data=[out:json][timeout:' + options.timeout + '];(' + nodeQuery + ');out body geom;';
-  const baseUrl = 'http://overpass-api.de/api/interpreter';
+  const baseUrl = 'https://overpass-api.de/api/interpreter';
   const resultUrl = baseUrl + query;
   const response = await fetchWithTimeout(resultUrl);
   if (!response.ok) {
