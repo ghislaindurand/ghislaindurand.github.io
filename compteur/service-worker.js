@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "precache-manifest.948bbf126f85ba3f216673b13eba3d25.js"
+  "precache-manifest.a98d5a2553e22323eb3ac04ddea7a4aa.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "compteurgen"});
