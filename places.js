@@ -48,64 +48,78 @@ function wikiUrl(path, api, mobile) {
 
 async function getOSMPlaces(position, options) {
   options = options || {};
-  options.node = options.node || '"natural"="peak"';
+  options.nodes = options.nodes || ['"natural"="peak"'];
   options.around = options.around || 10000;  // distance in meters
   options.timeout = options.timeout || 15;  // timeout in seconds
 
   console.info('Finding nearby nodes in OSM from ' + position.latitude + ' ' + position.longitude);
-  const nodeQuery = 'node[' + options.node + '](around:' + options.around + ',' + position.latitude + ',' + position.longitude + ');';
+  let nodeQuery = '';
+  for (const node of options.nodes) {
+    nodeQuery += 'node[' + node + '](around:' + options.around + ',' + position.latitude + ',' + position.longitude + ');';
+  }
   const query = '?data=[out:json][timeout:' + options.timeout + '];(' + nodeQuery + ');out body geom;';
   const baseUrl = 'https://overpass-api.de/api/interpreter';
   const resultUrl = baseUrl + query;
-  const response = await fetchWithTimeout(resultUrl);
-  if (!response.ok) {
-    console.error('OSM nearby failed', response);
-    throw new Error('OSM nearby is down');
-  }
-  const osmDataAsJson = await response.json();
-  console.info('Nearby response', osmDataAsJson);
-  let places = [];
-  for (let node of osmDataAsJson.elements) {
-    const title = node.tags.name;
-    console.info('Title', title);
-    if (!title) {
-      continue;
+  try {
+    const response = await fetchWithTimeout(resultUrl);
+    if (!response.ok) {
+      console.error('OSM nearby failed', response);
+      throw new Error('OSM nearby failed');
     }
-    let place = {
-      origin: 'OSM',
-      name: node.tags.name,
-      node: options.node,
-      location: {
-        lat: node.lat,
-        lng: node.lon
-      },
-      tags: node.tags
-    };
-    if (node.tags.website) {
-      place.url = node.tags.website;
+    const osmDataAsJson = await response.json();
+    console.info('Nearby response', osmDataAsJson);
+    let places = [];
+    for (const node of osmDataAsJson.elements) {
+      const title = node.tags.name;
+      console.info('Title', title);
+      if (!title) {
+        continue;
+      }
+      let place = {
+        origin: 'OSM',
+        name: node.tags.name,
+        nodeSearch: options.nodes,
+        location: {
+          lat: node.lat,
+          lng: node.lon
+        },
+        tags: node.tags
+      };
+      if (node.tags.website) {
+        place.url = node.tags.website;
+      }
+      places.push(place);
+      renderPlace(position, place);
+      if (places.length >= 25) break;
     }
-    places.push(place);
-    if (places.length >= 25) break;
+  
+    toast('getOSMPlaces (' + options.node + ') found ' + places.length + ' places', 2000);
+    return places;
+  } catch (err) {
+    console.error('OSM nearby failed', err);
+    throw new Error('OSM nearby failed');
   }
-
-  toast('found ' + places.length + ' places', 2000);
-  return places;
 }
 
-async function getNearbyArticle(position) {
-
+async function getWikipediaPlaces(position) {
   console.info('Finding nearby article in Wikipedia from ' + position.latitude + ' ' + position.longitude);
   const url = wikiUrl('action=query&format=json&origin=*&generator=geosearch&ggsradius=10000&ggsnamespace=0&ggslimit=50&formatversion=2&ggscoord=' + encodeURIComponent(position.latitude) + '%7C' + encodeURIComponent(position.longitude), true, true);
   let pages = localStorage.getItem('cache_url:' + url);
-  if (pages === null){
-    const response = await fetchWithTimeout(url);
-    if (!response.ok) {
-      console.error('Wikipedia nearby failed', response);
-      throw new Error('Wikipedia nearby is down');
+  if (pages === null) {
+    try {
+      const response = await fetchWithTimeout(url);
+      if (!response.ok) {
+        console.error('Wikipedia nearby failed', response);
+        throw new Error('Wikipedia nearby failed');
+      }
+      const json = await response.json();
+      console.info('Nearby response', json);
+      pages = json.query.pages;
+    } catch (err) {
+      console.error('Wikipedia nearby failed', err);
+      throw new Error('Wikipedia nearby failed');
     }
-    const json = await response.json();
-    console.info('Nearby response', json);
-    pages = json.query.pages;
+
     console.info('cache_url:' + url);
     localStorage.setItem('cache_url:' + url, JSON.stringify(pages));
   } else {
@@ -121,15 +135,57 @@ async function getNearbyArticle(position) {
     console.info('Title', title);
     let place = localStorage.getItem('cache_place:' + title);
     if (place === null) {
-      place = await getContent(title);
+      try {
+        place = await getWikipediaContent(title);
+      } catch (err) {
+        console.error('getWikipediaContent failed', err);
+        throw new Error('getWikipediaContent failed');
+      }
       console.info('cache_place:' + title);
       localStorage.setItem('cache_place:' + title, JSON.stringify(place));
     } else {
       place = JSON.parse(place);
     }
     places.push(place);
+    renderPlace(position, place);
     if (places.length >= 25) break;
   }
+
+  return places;
+
+}
+
+async function getNearbyPlaces(position) {
+  try {
+    const results = await Promise.all([
+      getWikipediaPlaces(position),
+      //getOSMPlaces(position),
+      getOSMPlaces(position, {
+        nodes: [
+          '"natural"="peak"',
+          '"tourism"~"attraction|museum"',
+          '"historic"',
+          '"leisure"',
+        ],
+      }),
+      /*getOSMPlaces(position, {
+        node: '"historic"'
+      }),
+      getOSMPlaces(position, {
+        node: '"leisure"'
+      }),*/
+    ]);
+    const places = [].concat.apply([], results);
+    toast('found ' + places.length + ' places', 5000);
+    return places;
+  } catch (err) {
+    console.error('getNearbyPlaces failed', err);
+    //throw new Error('getNearbyPlaces failed');
+  }
+
+
+/*
+  const wikipediaPlaces = getWikipediaPlaces(position);
 
   const osmPlacesPeak = await getOSMPlaces(position);
   if (osmPlacesPeak.length) {
@@ -151,45 +207,53 @@ async function getNearbyArticle(position) {
   toast('found ' + places.length + ' places', 2000);
   return places;
   //return null;
+  */
 }
 
-async function getContent(title) {
+async function getWikipediaContent(title) {
   console.info('Getting content from ' + title);
-  const response = await fetchWithTimeout(
-    wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&piprop=thumbnail&pithumbsize=512&titles=' + encodeURIComponent(title), true));
-  if (!response.ok) {
-    console.error('Wikipedia content call failed', response);
-    throw new Error('Wikipedia content is down');
+  try {
+    const response = await fetchWithTimeout(
+      wikiUrl('redirects=true&format=json&origin=*&action=query&prop=extracts|coordinates|pageimages&piprop=thumbnail&pithumbsize=512&titles=' +
+      encodeURIComponent(title), true));
+    if (!response.ok) {
+      console.error('getWikipediaContent failed', response);
+      throw new Error('getWikipediaContent failed');
+    }
+    const json = await response.json();
+    const page = Object.values(json.query.pages)[0];
+    console.info('Page', page);
+    let thumbnail = null;
+    if (page.thumbnail && page.thumbnail.source && /\.(jpe?g|gif|png)$/i.test(page.thumbnail.source)) {
+      thumbnail = page.thumbnail.source;
+    }
+    let place = {
+      origin: 'Wikipedia',
+      url: wikiUrl(encodeURIComponent(page.title), false),
+      title: page.title,
+      label: page.title,
+      name: page.title,
+      content: simpleHtmlToText(page.extract.trim()),
+      //lang: state.lang.speechTag,
+      /*
+      coordinates: page.coordinates[0] ? {
+        lat: page.coordinates[0].lat,
+        lng: page.coordinates[0].lon,
+      } : null,*/
+      location: page.coordinates[0] ? {
+        lat: page.coordinates[0].lat,
+        lng: page.coordinates[0].lon,
+      } : null,
+      image: thumbnail,
+      //pageimage: page.pageimage ? page.pageimage : null,
+      //images: page.images ? page.images : null,
+    };
+    return place;
+  } catch (err) {
+    console.error('getWikipediaContent failed', err);
+    throw new Error('getWikipediaContent failed');
   }
-  const json = await response.json();
-  const page = Object.values(json.query.pages)[0];
-  console.info('Page', page);
-  let thumbnail = null;
-  if (page.thumbnail && page.thumbnail.source && /\.(jpe?g|gif|png)$/i.test(page.thumbnail.source)) {
-    thumbnail = page.thumbnail.source;
-  }
-  let place = {
-    origin: 'Wikipedia',
-    url: wikiUrl(encodeURIComponent(page.title), false),
-    title: page.title,
-    label: page.title,
-    name: page.title,
-    content: simpleHtmlToText(page.extract.trim()),
-    //lang: state.lang.speechTag,
-    /*
-    coordinates: page.coordinates[0] ? {
-      lat: page.coordinates[0].lat,
-      lng: page.coordinates[0].lon,
-    } : null,*/
-    location: page.coordinates[0] ? {
-      lat: page.coordinates[0].lat,
-      lng: page.coordinates[0].lon,
-    } : null,
-    image: thumbnail,
-    //pageimage: page.pageimage ? page.pageimage : null,
-    //images: page.images ? page.images : null,
-  };
-  return place;
+
 }
 
 function timeout(time, message) {
@@ -198,9 +262,9 @@ function timeout(time, message) {
   });
 }
 
-function fetchWithTimeout(url, paras) {
+function fetchWithTimeout(url, params) {
   return Promise.race([
-    fetch(url, paras), 
+    fetch(url, params), 
     timeout(15 * 1000, 'Fetch timed out for ' + url)]);
 }
 
@@ -365,13 +429,14 @@ function renderPlace(currentPosition, place) {
 
 }
 
+/*
 function renderPlaces(currentPosition, places) {
   places.forEach((place) => {
     if (place.image !== null) {
       renderPlace(currentPosition, place);
     }
   });
-}
+}*/
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
@@ -383,10 +448,11 @@ AFRAME.registerComponent('geoloc', {
       toast('found position', 2000);
 
       localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
-      getNearbyArticle(currentPosition)
+      getNearbyPlaces(currentPosition);
+      /*getNearbyArticle(currentPosition)
         .then((places) => {
           renderPlaces(currentPosition, places);
-        });
+        });*/
     };
   
     const geolocError = (err) => {
@@ -400,10 +466,11 @@ AFRAME.registerComponent('geoloc', {
         toast('position not found : use home', 2000);
       }
 
-      getNearbyArticle(currentPosition)
+      getNearbyPlaces(currentPosition);
+      /*getNearbyArticle(currentPosition)
         .then((places) => {
           renderPlaces(currentPosition, places);
-        });
+        });*/
     };
     const geolocOptions = {
       enableHighAccuracy: true,
