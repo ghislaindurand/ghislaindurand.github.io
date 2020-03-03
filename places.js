@@ -518,14 +518,16 @@ AFRAME.registerComponent('cursor-listener', {
 
     this.el.addEventListener('mouseenter', function (_ev) {
       const initialScale = this.getAttribute('data-initialScale');
-      this.setAttribute('scale', `${initialScale*2}, ${initialScale*2}`);
+      const scale = this.getAttribute('scale');
+      this.setAttribute('scale', scale.replace(initialScale, initialScale*2));
       const name = this.getAttribute('data-name');
       toast(name, 1500);
     });
 
     this.el.addEventListener('mouseleave', function (_ev) {
       const initialScale = this.getAttribute('data-initialScale');
-      this.setAttribute('scale', `${initialScale}, ${initialScale}`);
+      const scale = this.getAttribute('scale');
+      this.setAttribute('scale', scale.replace(initialScale*2, scale));
     });
 
     this.el.addEventListener('click', function (_ev) {
