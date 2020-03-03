@@ -2479,6 +2479,10 @@ ARjs.Context = THREEx.ArToolkitContext = function (parameters) {
         // the patternRatio inside the artoolkit marker - artoolkit only
         patternRatio: 0.5,
 
+        // Labeling mode for markers - ['black_region', 'white_region']
+        // black_region: Black bordered markers on a white background, white_region: White bordered markers on a black background
+        labelingMode: 'black_region',
+
         // enable image smoothing or not for canvas copy - default to true
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
         imageSmoothingEnabled: false,
@@ -2486,6 +2490,7 @@ ARjs.Context = THREEx.ArToolkitContext = function (parameters) {
     // parameters sanity check
     console.assert(['artoolkit', 'aruco'].indexOf(this.parameters.trackingBackend) !== -1, 'invalid parameter trackingBackend', this.parameters.trackingBackend)
     console.assert(['color', 'color_and_matrix', 'mono', 'mono_and_matrix'].indexOf(this.parameters.detectionMode) !== -1, 'invalid parameter detectionMode', this.parameters.detectionMode)
+    console.assert(["black_region", "white_region"].indexOf(this.parameters.labelingMode) !== -1, "invalid parameter labelingMode", this.parameters.labelingMode);
 
     this.arController = null;
     this.arucoContext = null;
@@ -2526,7 +2531,7 @@ Object.assign(ARjs.Context.prototype, THREE.EventDispatcher.prototype);
 // ARjs.Context.baseURL = '../'
 // default to github page
 ARjs.Context.baseURL = 'https://jeromeetienne.github.io/AR.js/three.js/'
-ARjs.Context.REVISION = '2.1.8';
+ARjs.Context.REVISION = '2.2.2';
 
 /**
  * Create a default camera for this trackingBackend
@@ -2684,6 +2689,15 @@ ARjs.Context.prototype._initArtoolkit = function (onCompleted) {
         // set the patternRatio for artoolkit
         arController.setPattRatio(_this.parameters.patternRatio);
 
+        // set the labelingMode for artoolkit
+        var labelingModeTypes = {
+            "black_region": artoolkit.AR_LABELING_BLACK_REGION,
+            "white_region": artoolkit.AR_LABELING_WHITE_REGION
+        }
+        var labelingModeType = labelingModeTypes[_this.parameters.labelingMode];
+        console.assert(labelingModeType !== undefined);
+        arController.setLabelingMode(labelingModeType);
+
         // set thresholding in artoolkit
         // this seems to be the default
         // arController.setThresholdMode(artoolkit.AR_LABELING_THRESH_MODE_MANUAL)
@@ -2819,6 +2833,7 @@ ARjs.Profile.prototype.reset = function () {
     this.contextParameters = {
         cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
         detectionMode: 'mono',
+        labelingMode: "black_region"
     }
     this.defaultMarkerParameters = {
         type: 'pattern',
@@ -2878,10 +2893,12 @@ ARjs.Profile.prototype.defaultMarker = function (trackingBackend) {
         this.contextParameters.detectionMode = 'mono'
         this.defaultMarkerParameters.type = 'pattern'
         this.defaultMarkerParameters.patternUrl = THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
+        this.contextParameters.labelingMode = "black_region"
     } else if (trackingBackend === 'aruco') {
         this.contextParameters.detectionMode = 'mono'
         this.defaultMarkerParameters.type = 'barcode'
         this.defaultMarkerParameters.barcodeValue = 1001
+        this.contextParameters.labelingMode = "black_region"
     } else console.assert(false)
 
     return this
@@ -3128,13 +3145,9 @@ ARjs.Source.prototype._initSourceWebcam = function (onReady, onError) {
                 facingMode: 'environment',
                 width: {
                     ideal: _this.parameters.sourceWidth,
-                    // min: 1024,
-                    // max: 1920
                 },
                 height: {
                     ideal: _this.parameters.sourceHeight,
-                    // min: 776,
-                    // max: 1080
                 }
             }
         };

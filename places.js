@@ -49,7 +49,7 @@ function wikiUrl(path, api, mobile) {
 async function getOSMPlaces(position, options) {
   options = options || {};
   options.nodes = options.nodes || ['"natural"="peak"'];
-  options.around = options.around || 10000;  // distance in meters
+  options.around = options.around || 5000;  // distance in meters
   options.timeout = options.timeout || 15;  // timeout in seconds
 
   console.info('Finding nearby nodes in OSM from ' + position.latitude + ' ' + position.longitude);
@@ -67,7 +67,7 @@ async function getOSMPlaces(position, options) {
       throw new Error('OSM nearby failed');
     }
     const osmDataAsJson = await response.json();
-    console.info('Nearby response', osmDataAsJson);
+    console.info('Nearby response for OSM', osmDataAsJson);
     let places = [];
     for (const node of osmDataAsJson.elements) {
       const title = node.tags.name;
@@ -90,7 +90,7 @@ async function getOSMPlaces(position, options) {
       }
       places.push(place);
       renderPlace(position, place);
-      if (places.length >= 25) break;
+      //if (places.length >= 25) break;
     }
   
     toast('getOSMPlaces (' + options.node + ') found ' + places.length + ' places', 2000);
@@ -366,6 +366,7 @@ function renderPlace(currentPosition, place) {
     //const item = document.createElement('a-box');
     //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
     item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    item.setAttribute('data-primitive', 'image');
     item.setAttribute('data-name', place.name + ' ' + txtDistance);
     item.setAttribute('src', place.image);
     // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
@@ -389,10 +390,12 @@ function renderPlace(currentPosition, place) {
     entity.setAttribute('data-name', place.name + ' ' + txtDistance);
     entity.setAttribute('data-initialScale', scale);
     if (place.tags && place.tags.natural && place.tags.natural === 'peak') {
+      entity.setAttribute('data-primitive', 'cone');
       entity.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
       entity.setAttribute('material', 'color: #4CffD9;');
       entity.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
     } else {
+      entity.setAttribute('data-primitive', 'box');
       entity.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
       entity.setAttribute('material', 'color: #6666ff;');
       entity.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
@@ -518,16 +521,22 @@ AFRAME.registerComponent('cursor-listener', {
 
     this.el.addEventListener('mouseenter', function (_ev) {
       const initialScale = this.getAttribute('data-initialScale');
-      const scale = this.getAttribute('scale');
-      this.setAttribute('scale', scale.replace(initialScale, initialScale*2));
+      const primitive = this.getAttribute('data-primitive');
+      const scale = primitive === 'image' ?
+        `${initialScale*2}, ${initialScale*2}, 1` :
+        `${initialScale*2}, ${initialScale*2}, ${initialScale*2}`;
+      this.setAttribute('scale', scale);
       const name = this.getAttribute('data-name');
       toast(name, 1500);
     });
 
     this.el.addEventListener('mouseleave', function (_ev) {
       const initialScale = this.getAttribute('data-initialScale');
-      const scale = this.getAttribute('scale');
-      this.setAttribute('scale', scale.replace(initialScale*2, scale));
+      const primitive = this.getAttribute('data-primitive');
+      const scale = primitive === 'image' ?
+        `${initialScale}, ${initialScale}, 1` :
+        `${initialScale}, ${initialScale}, ${initialScale}`;
+      this.setAttribute('scale', scale);
     });
 
     this.el.addEventListener('click', function (_ev) {
