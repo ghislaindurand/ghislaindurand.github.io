@@ -5,6 +5,27 @@
 //let cachePlaces = {};
 let currentPosition = null;
 
+const assets = {
+  // natural
+  'icon-peak': './img/icons/peak-16px.png',
+  'icon-saddle': './img/icons/saddle-16px.png',
+  'icon-spring': './img/icons/spring-120px.png',
+  // leisure
+  'icon-playground': './img/icons/playground-28px.png',
+};
+
+function getOSMImage(node) {
+  if (node.tags.natural === 'peak')
+    return '#icon-peak';
+  else if (node.tags.natural === 'saddle')
+    return '#icon-saddle';
+  else if (node.tags.natural === 'spring')
+    return '#icon-spring';
+  else if (node.tags.leisure === 'playground')
+    return '#icon-playground';
+  return null;
+}
+
 /**
  * Calculates the haversine distance between point A, and B.
  * @param {object} latlngA {lat: number, lng: number} point A
@@ -39,6 +60,18 @@ const haversineDistance = (latlngA, latlngB) => {
 };
 */
 
+function loadAssets() {
+  const container = document.querySelector('a-assets');
+  for (const elem in assets) {
+    const img = document.createElement('img');
+    img.setAttribute('id', elem);
+    img.setAttribute('src', assets[elem]);
+    container.appendChild(img);
+  }
+
+
+}
+
 function wikiUrl(path, api, mobile) {
   const wikiTag = 'fr';
   let url = 'https://' + wikiTag;
@@ -46,16 +79,20 @@ function wikiUrl(path, api, mobile) {
   return url + '.wikipedia.org/' + (api ? 'w/api.php?' : 'wiki/') + path;
 }
 
+
 async function getOSMPlaces(position, options) {
   options = options || {};
-  options.nodes = options.nodes || ['"natural"="peak"'];
+  options.nodes = options.nodes || [{search: '"natural"="peak"'}];
   options.around = options.around || 5000;  // distance in meters
   options.timeout = options.timeout || 15;  // timeout in seconds
+
+  loadAssets();
 
   console.info('Finding nearby nodes in OSM from ' + position.latitude + ' ' + position.longitude);
   let nodeQuery = '';
   for (const node of options.nodes) {
-    nodeQuery += 'node[' + node + '](around:' + options.around + ',' + position.latitude + ',' + position.longitude + ');';
+    const around = node.around || options.around;
+    nodeQuery += 'node[' + node.search + '](around:' + around + ',' + position.latitude + ',' + position.longitude + ');';
   }
   const query = '?data=[out:json][timeout:' + options.timeout + '];(' + nodeQuery + ');out body geom;';
   const baseUrl = 'https://overpass-api.de/api/interpreter';
@@ -67,7 +104,7 @@ async function getOSMPlaces(position, options) {
       throw new Error('OSM nearby failed');
     }
     const osmDataAsJson = await response.json();
-    console.info('Nearby response for OSM', osmDataAsJson);
+    console.info('Nearby response for OSM url: ' + resultUrl + ' = ', JSON.stringify(osmDataAsJson));
     let places = [];
     for (const node of osmDataAsJson.elements) {
       const title = node.tags.name;
@@ -88,6 +125,8 @@ async function getOSMPlaces(position, options) {
       if (node.tags.website) {
         place.url = node.tags.website;
       }
+      const image = getOSMImage(node);
+      if (image !== null) place.image = image;
       places.push(place);
       renderPlace(position, place);
       //if (places.length >= 25) break;
@@ -162,10 +201,11 @@ async function getNearbyPlaces(position) {
       //getOSMPlaces(position),
       getOSMPlaces(position, {
         nodes: [
-          '"natural"="peak"',
-          '"tourism"~"attraction|museum"',
-          '"historic"',
-          '"leisure"',
+          //{'search': '"natural"="peak"', around: 30000},
+          {'search': '"natural"', around: 10000},
+          {search: '"tourism"~"attraction|museum"'},
+          //{search: '"historic"'},
+          {search: '"leisure"'},
         ],
       }),
       /*getOSMPlaces(position, {
@@ -361,74 +401,87 @@ function renderPlace(currentPosition, place) {
   //const lngInter = intermediate.lon;
 
   // add place item
-  if (place.origin === 'Wikipedia' && place.image) {
-    const item = document.createElement('a-image');
-    //const item = document.createElement('a-box');
-    //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
-    item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+  let item = null;
+  //if (place.origin === 'Wikipedia' && place.image) {
+  //  item = document.createElement('a-image');
+  //  //const item = document.createElement('a-box');
+  //  //item.setAttribute('gps-entity-place', `latitude: ${latitude}; longitude: ${longitude}`);
+  //  item.setAttribute('data-primitive', 'image');
+  //  item.setAttribute('src', place.image);
+  //  // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
+  //  //item.setAttribute('scale', '20, 20');
+  //  item.setAttribute('scale', `${scale}, ${scale}`);
+  //  //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  //  //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
+  //
+  //
+  //}
+  //else if (place.origin === 'OSM') {
+  if (place.image) {
+    item = document.createElement('a-image');
     item.setAttribute('data-primitive', 'image');
-    item.setAttribute('data-name', place.name + ' ' + txtDistance);
     item.setAttribute('src', place.image);
-    // for debug purposes, just show in a bigger scale, otherwise I have to personally go on places...
-    //item.setAttribute('scale', '20, 20');
-    item.setAttribute('data-initialScale', scale);
     item.setAttribute('scale', `${scale}, ${scale}`);
-    //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
-    //item.addEventListener('loaded', () => window.dispatchEvent(new CustomEvent('gps-entity-place-loaded')));
-    item.setAttribute('look-at', '[gps-camera]');
+  } else {
+    item = document.createElement('a-entity');
+    item.setAttribute('data-primitive', 'box');
+    item.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
+    item.setAttribute('material', 'color: #6666ff;');
+    item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  }
+  // if (place.tags && place.tags.natural && place.tags.natural === 'peak') {
+  // item.setAttribute('data-primitive', 'cone');
+  // item.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
+  // if (place.image)
+  // item.setAttribute('material', `src: ${place.image};`);
+  // else
+  // item.setAttribute('material', 'color: #4CffD9;');
+  // item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  // } else {
+  // item.setAttribute('data-primitive', 'box');
+  // item.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
+  // item.setAttribute('material', 'color: #6666ff;');
+  //item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  // }
+  //entity.setAttribute('look-at', '[gps-camera]');
 
+  //}
+
+  if (item !== null) {
+    // common attributes
+    item.setAttribute('data-initialScale', scale);
+    item.setAttribute('data-name', place.name + ' ' + txtDistance);
+    item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
     if (place.url) {
       item.setAttribute('data-url', place.url);
     }
     item.setAttribute('cursor-listener', '');
- 
+    item.setAttribute('look-at', '[gps-camera]');
+
     scene.appendChild(item);
   }
-  if (place.origin === 'OSM') {
-    const entity = document.createElement('a-entity');
-    entity.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
-    entity.setAttribute('data-name', place.name + ' ' + txtDistance);
-    entity.setAttribute('data-initialScale', scale);
-    if (place.tags && place.tags.natural && place.tags.natural === 'peak') {
-      entity.setAttribute('data-primitive', 'cone');
-      entity.setAttribute('geometry', 'primitive: cone; radiusBottom: 1; radiusTop: 0.1');
-      entity.setAttribute('material', 'color: #4CffD9;');
-      entity.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
-    } else {
-      entity.setAttribute('data-primitive', 'box');
-      entity.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
-      entity.setAttribute('material', 'color: #6666ff;');
-      entity.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
-    }
-    //entity.setAttribute('look-at', '[gps-camera]');
-    if (place.url) {
-      entity.setAttribute('data-url', place.url);
-    }
-    entity.setAttribute('cursor-listener', '');
 
-    scene.appendChild(entity);
+  if (place.name !== null) {
+    const text = document.createElement('a-text');
+  
+    //geometry="primitive: plane; width: auto; height: auto" material="color: #333"
+    //text.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
+    //text.setAttribute('material', 'color: #333');
+  
+  
+    text.setAttribute('font', 'roboto');
+  
+    text.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
+    //text.setAttribute('color', '#fff');
+    text.setAttribute('align', 'center');
+    text.setAttribute('baseline', 'bottom');
+    text.setAttribute('value', `${place.name}\n${txtDistance}`);
+    text.setAttribute('position', `0, ${scale/2}, -1`);
+    text.setAttribute('scale', `${scale/2}, ${scale/2}`);
+    text.setAttribute('look-at', '[gps-camera]');
+    scene.appendChild(text);
   }
-
-
-  const text = document.createElement('a-text');
-
-  //geometry="primitive: plane; width: auto; height: auto" material="color: #333"
-  //text.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
-  //text.setAttribute('material', 'color: #333');
-
-
-  text.setAttribute('font', 'roboto');
-
-  text.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
-  //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
-  //text.setAttribute('color', '#fff');
-  text.setAttribute('align', 'center');
-  text.setAttribute('baseline', 'bottom');
-  text.setAttribute('value', `${place.name}\n${txtDistance}`);
-  text.setAttribute('position', `0, ${scale/2}, -1`);
-  text.setAttribute('scale', `${scale/2}, ${scale/2}`);
-  text.setAttribute('look-at', '[gps-camera]');
-  scene.appendChild(text);
 
 }
 
