@@ -371,19 +371,19 @@ function renderPlace(currentPosition, place) {
   console.log('d (distance)=' + txtDistance);
 
   let fraction = 1;
-  let scale = 10;
+  let scale = 5;
   let simulatedLat = p2.lat;
   let simulatedLon = p2.lon;
   if (d > 1000) {
     fraction = (1 / d) * (200 + (d / 100));
-    scale = 30;
+    scale *= 3;
     const intermediate = p1.intermediatePointTo(p2, fraction);
     console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon + ' distance=' + p1.distanceTo(intermediate));
     simulatedLat = intermediate.lat.toFixed(4);
     simulatedLon = intermediate.lon.toFixed(4);
   } else if (d > 100) {
     fraction = (1 / d) * (100 + (d / 100));
-    scale = 20;
+    scale *= 2;
     const intermediate = p1.intermediatePointTo(p2, fraction);
     console.log('intermediate=' + intermediate.lat + ' ' + intermediate.lon + ' distance=' + p1.distanceTo(intermediate));
     simulatedLat = intermediate.lat.toFixed(4);
