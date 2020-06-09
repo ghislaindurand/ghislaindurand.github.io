@@ -576,8 +576,8 @@ AFRAME.registerComponent('cursor-listener', {
       const initialScale = this.getAttribute('data-initialScale');
       const primitive = this.getAttribute('data-primitive');
       const scale = primitive === 'image' ?
-        `${initialScale*2}, ${initialScale*2}, 1` :
-        `${initialScale*2}, ${initialScale*2}, ${initialScale*2}`;
+        `${initialScale*3}, ${initialScale*3}, 1` :
+        `${initialScale*3}, ${initialScale*3}, ${initialScale*3}`;
       this.setAttribute('scale', scale);
       const name = this.getAttribute('data-name');
       toast(name, 1500);
