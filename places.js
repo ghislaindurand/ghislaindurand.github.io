@@ -458,6 +458,8 @@ function renderPlace(currentPosition, place) {
     item.setAttribute('cursor-listener', '');
     item.setAttribute('look-at', '[gps-camera]');
 
+    item.setAttribute('gesture-handler', '');
+
     scene.appendChild(item);
   }
 
@@ -493,10 +495,17 @@ function renderPlaces(currentPosition, places) {
     }
   });
 }*/
+var heading, delay; // declare compass vars
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
-    console.log(this.el);
+    //console.log(this.el);
+
+    window.addEventListener('deviceorientation', function(e) { // get current compass heading
+      if (e.webkitCompassHeading) heading = e.webkitCompassHeading; // get webkit compass heading
+      else heading = e.alpha; // get android compass heading
+    });
+
     toast('getCurrentPosition...', 2000);
 
     const geolocSuccess = (position) => {
@@ -559,6 +568,7 @@ AFRAME.registerComponent('geoloc', {
   }
 });
 
+
 // Component to change to a sequential color on click.
 AFRAME.registerComponent('cursor-listener', {
   init: function () {
@@ -570,7 +580,6 @@ AFRAME.registerComponent('cursor-listener', {
       this.setAttribute('material', 'color', COLORS[lastIndex]);
       console.log('I was clicked at: ', evt.detail.intersection.point);
     });*/
-
 
     this.el.addEventListener('mouseenter', function (_ev) {
       const initialScale = this.getAttribute('data-initialScale');
@@ -605,3 +614,13 @@ AFRAME.registerComponent('cursor-listener', {
 
   }
 });
+
+AFRAME.registerComponent('cockpit', {
+  tick: function () {
+    var bearing=document.querySelector('#bearing'); // set bearing
+    bearing.setAttribute('value', Math.round(heading)); // set bearing number
+    var compass=document.querySelector('#compass'); // set compass
+    compass.setAttribute('rotation', {z: 0-heading}); // set compass angle, reverse direction
+  },
+});
+
