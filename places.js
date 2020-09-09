@@ -620,7 +620,8 @@ AFRAME.registerComponent('cockpit', {
     var bearing=document.querySelector('#bearing'); // set bearing
     bearing.setAttribute('value', Math.round(heading)); // set bearing number
     var compass=document.querySelector('#compass'); // set compass
-    compass.setAttribute('rotation', {z: 0-heading}); // set compass angle, reverse direction
+    //compass.setAttribute('rotation', {z: 0-heading}); // set compass angle, reverse direction
+    compass.setAttribute('rotation', {z: heading}); // set compass angle, reverse direction
   },
 });
 
