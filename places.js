@@ -502,10 +502,12 @@ AFRAME.registerComponent('geoloc', {
   init: function () {
     //console.log(this.el);
 
-    window.addEventListener('deviceorientation', function(e) { // get current compass heading
-      if (e.webkitCompassHeading) heading = e.webkitCompassHeading; // get webkit compass heading
-      else heading = e.alpha; // get android compass heading
-    });
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', function(e) { // get current compass heading
+        if (e.webkitCompassHeading) heading = e.webkitCompassHeading; // get webkit compass heading
+        else heading = e.alpha; // get android compass heading
+      });
+    }
 
     toast('getCurrentPosition...', 2000);
 
