@@ -495,7 +495,8 @@ function renderPlaces(currentPosition, places) {
     }
   });
 }*/
-var heading, delay; // declare compass vars
+
+var heading; // declare compass vars
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
@@ -615,13 +616,36 @@ AFRAME.registerComponent('cursor-listener', {
   }
 });
 
+
+const directions = ['N', 'O', 'S', 'E'];
 AFRAME.registerComponent('cockpit', {
   tick: function () {
-    var bearing=document.querySelector('#bearing'); // set bearing
-    bearing.setAttribute('value', Math.round(heading)); // set bearing number
-    var compass=document.querySelector('#compass'); // set compass
-    //compass.setAttribute('rotation', {z: 0-heading}); // set compass angle, reverse direction
-    compass.setAttribute('rotation', {z: heading}); // set compass angle, reverse direction
+    const bearing = document.querySelector('#bearing'); // set bearing
+    
+    let bearingValue = '';
+    for (let i = 0; i < 4; i++) {
+      const quarter = ((i + 1) * 90); 
+      //if (heading < ((i+1) * 45)) bearingValue += directions[i];
+      if (heading <= (quarter - 45)) {
+        bearingValue += directions[i];
+        if (heading > (quarter - 67.5)) {
+          bearingValue += (i < 3) ? directions[i+1] : directions[0];
+        }
+        break;
+      } else if (heading < quarter) {
+        bearingValue += (i < 3) ? directions[i+1] : directions[0];
+        if (heading < (quarter - 22.5)) {
+          bearingValue += directions[i];
+        }
+        break;
+      }
+    }
+
+    //bearing.setAttribute('value', Math.round(heading)); // set bearing number
+    bearing.setAttribute('value', bearingValue); // set bearing number
+
+    const compass = document.querySelector('#compass'); // set compass
+    compass.setAttribute('rotation', {z: 0-heading}); // set compass angle, reverse direction
   },
 });
 
