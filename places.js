@@ -496,7 +496,7 @@ function renderPlaces(currentPosition, places) {
   });
 }*/
 
-var heading; // declare compass vars
+let heading; // declare compass vars
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
