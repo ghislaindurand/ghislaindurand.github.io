@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/ghislaindurand/ghislaindurand.github.io#readme",
   "devDependencies": {
-    "eslint": "^7.9.0"
+    "eslint": "^7.15.0"
   }
 }
