@@ -108,10 +108,10 @@ async function getOSMPlaces(position, options) {
     let places = [];
     for (const node of osmDataAsJson.elements) {
       const title = node.tags.name;
-      console.info('Title', title);
       if (!title) {
         continue;
       }
+      console.info('Title', title);
       let place = {
         origin: 'OSM',
         name: node.tags.name,
@@ -422,6 +422,16 @@ function renderPlace(currentPosition, place) {
     item.setAttribute('data-primitive', 'image');
     item.setAttribute('src', place.image);
     item.setAttribute('scale', `${scale}, ${scale}`);
+  } else if (/roi|ranch/i.test(place.name)) {
+    item = document.createElement('a-entity');
+    item.setAttribute('gltf-model', '#Castle');
+    scale = 500;
+    item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+  } else if (/grotte/i.test(place.name)) {
+    item = document.createElement('a-entity');
+    item.setAttribute('gltf-model', '#Mammouth');
+    scale = 50;
+    item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   } else {
     item = document.createElement('a-entity');
     item.setAttribute('data-primitive', 'box');
