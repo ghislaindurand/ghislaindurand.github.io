@@ -84,7 +84,7 @@ async function getOSMPlaces(position, options) {
   options = options || {};
   options.nodes = options.nodes || [{search: '"natural"="peak"'}];
   options.around = options.around || 5000;  // distance in meters
-  options.timeout = options.timeout || 15;  // timeout in seconds
+  options.timeout = options.timeout || 30;  // timeout in seconds
 
   loadAssets();
 
@@ -296,16 +296,34 @@ async function getWikipediaContent(title) {
 
 }
 
-function timeout(time, message) {
-  return new Promise((_resolve, reject) => {
-    setTimeout(() => reject(new Error('Timeout: ' + message)), time);
-  });
+/**
+ * reject if timeout happen before promise finish
+ *
+ * @param {Promise} promise
+ * @param {int} ms
+ * @returns Promise
+ */
+function timeoutPromise(promise, ms) {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error('promise timeout'));
+    }, ms);
+    promise.then(
+      (res) => {
+        clearTimeout(timeoutId);
+        resolve(res);
+      },
+      (err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      }
+    );
+  })
 }
 
-function fetchWithTimeout(url, params) {
-  return Promise.race([
-    fetch(url, params), 
-    timeout(15 * 1000, 'Fetch timed out for ' + url)]);
+
+function fetchWithTimeout(url, init = {}, ms = 30000) {
+  return timeoutPromise(fetch(url, init), ms);
 }
 
 function simpleHtmlToText(html) {
