@@ -333,7 +333,7 @@ function simpleHtmlToText(html) {
   remove(div.querySelector('#See_also'));
   let text = div.textContent;
   text = text.replace(/(.)\n/g, '$1.\n');
-  // Remove stuff in parantheses. Nobody wants to hear that stuff.
+  // Remove stuff in parentheses. Nobody wants to hear that stuff.
   // This isn't how you pass the Google interview.
   // But it is technically O(n)
   for (let i = 0; i < 10; i++) {
