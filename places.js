@@ -419,7 +419,12 @@ function renderPlace(currentPosition, place) {
   //const lngInter = intermediate.lon;
 
   // add place item
-  let item = null;
+  let item = document.createElement('a-entity');
+  item.setAttribute('gps-new-entity-place', {
+      latitude: simulatedLat,
+      longitude: simulatedLon
+  });
+
   //if (place.origin === 'Wikipedia' && place.image) {
   //  item = document.createElement('a-image');
   //  //const item = document.createElement('a-box');
@@ -435,27 +440,28 @@ function renderPlace(currentPosition, place) {
   //
   //}
   //else if (place.origin === 'OSM') {
+  let mainObject = null;
   if (place.image) {
-    item = document.createElement('a-image');
-    item.setAttribute('data-primitive', 'image');
-    item.setAttribute('src', place.image);
-    item.setAttribute('scale', `${scale}, ${scale}`);
+    mainObject = document.createElement('a-image');
+    mainObject.setAttribute('data-primitive', 'image');
+    mainObject.setAttribute('src', place.image);
+    mainObject.setAttribute('scale', `${scale}, ${scale}`);
   } else if (/roi|ranch/i.test(place.name)) {
-    item = document.createElement('a-entity');
-    item.setAttribute('gltf-model', '#Castle');
+    mainObject = document.createElement('a-entity');
+    mainObject.setAttribute('gltf-model', '#Castle');
     scale = 500;
-    item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   } else if (/grotte/i.test(place.name)) {
-    item = document.createElement('a-entity');
-    item.setAttribute('gltf-model', '#Mammouth');
+    mainObject = document.createElement('a-entity');
+    mainObject.setAttribute('gltf-model', '#Mammouth');
     scale = 50;
-    item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   } else {
-    item = document.createElement('a-entity');
-    item.setAttribute('data-primitive', 'box');
-    item.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
-    item.setAttribute('material', 'color: #6666ff;');
-    item.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    mainObject = document.createElement('a-entity');
+    mainObject.setAttribute('data-primitive', 'box');
+    mainObject.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
+    mainObject.setAttribute('material', 'color: #6666ff;');
+    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
   }
   // if (place.tags && place.tags.natural && place.tags.natural === 'peak') {
   // item.setAttribute('data-primitive', 'cone');
@@ -475,24 +481,26 @@ function renderPlace(currentPosition, place) {
 
   //}
 
-  if (item !== null) {
+  if (mainObject !== null) {
     // common attributes
-    item.setAttribute('data-initialScale', scale);
-    item.setAttribute('data-name', place.name + ' ' + txtDistance);
-    item.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    mainObject.setAttribute('data-initialScale', scale);
+    mainObject.setAttribute('data-name', place.name + ' ' + txtDistance);
+    //item.setAttribute('gps-new-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
     if (place.url) {
-      item.setAttribute('data-url', place.url);
+      mainObject.setAttribute('data-url', place.url);
     }
-    item.setAttribute('cursor-listener', '');
-    item.setAttribute('look-at', '[gps-camera]');
+    mainObject.setAttribute('cursor-listener', '');
+    //item.setAttribute('look-at', '[gps-camera]');
+    mainObject.setAttribute('look-at', '[gps-new-camera]');
 
-    item.setAttribute('gesture-handler', '');
+    mainObject.setAttribute('gesture-handler', '');
 
-    scene.appendChild(item);
+    item.appendChild(mainObject);
   }
 
+  let text = null
   if (place.name !== null) {
-    const text = document.createElement('a-text');
+    text = document.createElement('a-text');
   
     //geometry="primitive: plane; width: auto; height: auto" material="color: #333"
     //text.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
@@ -501,7 +509,7 @@ function renderPlace(currentPosition, place) {
   
     text.setAttribute('font', 'roboto');
   
-    text.setAttribute('gps-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    //text.setAttribute('gps-new-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
     //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
     //text.setAttribute('color', '#fff');
     text.setAttribute('align', 'center');
@@ -509,10 +517,47 @@ function renderPlace(currentPosition, place) {
     text.setAttribute('value', `${place.name}\n${txtDistance}`);
     text.setAttribute('position', `0, ${scale/2}, -1`);
     text.setAttribute('scale', `${scale/2}, ${scale/2}`);
-    text.setAttribute('look-at', '[gps-camera]');
-    scene.appendChild(text);
+    //text.setAttribute('look-at', '[gps-camera]');
+    text.setAttribute('look-at', '[gps-new-camera]');
+    item.appendChild(text);
   }
 
+  if (mainObject !== null || text !== null) {
+    scene.appendChild(item);
+  }
+
+}
+
+function setDirections(currentPosition) {
+  const scene = document.querySelector('a-scene');
+  const distance = 0.01 * 5; // 0.01 deg = 1111 m
+  const directions = [
+    {text: 'Nord', lat: currentPosition.latitude + distance, lon: currentPosition.longitude},
+    {text: 'Est', lat: currentPosition.latitude, lon: currentPosition.longitude + distance},
+    {text: 'Sud', lat: currentPosition.latitude - distance, lon: currentPosition.longitude},
+    {text: 'Ouest', lat: currentPosition.latitude, lon: currentPosition.longitude - distance},
+  ];
+  for (const dir of directions) {
+    const text = document.createElement('a-text');
+    text.setAttribute('gps-new-entity-place', {
+        latitude: dir.lat,
+        longitude: dir.lon
+    });
+    text.setAttribute('font', 'roboto');
+  
+    //text.setAttribute('gps-new-entity-place', `latitude: ${simulatedLat}; longitude: ${simulatedLon};`);
+    //text.setAttribute('text', `color: #BBB; align: center; baseline: bottom; value: "${place.name} ${txtDistance}";`);
+    text.setAttribute('color', '#0f0');
+    text.setAttribute('align', 'center');
+    //text.setAttribute('baseline', 'bottom');
+    text.setAttribute('value', dir.text);
+    text.setAttribute('position', `0, ${300*5}, -1`);
+    text.setAttribute('scale', `${1000*5}, ${1000*5}`);
+    //text.setAttribute('look-at', '[gps-camera]');
+    text.setAttribute('look-at', '[gps-new-camera]');
+
+    scene.appendChild(text);
+  }
 }
 
 /*
@@ -549,6 +594,8 @@ AFRAME.registerComponent('geoloc', {
         .then((places) => {
           renderPlaces(currentPosition, places);
         });*/
+      setDirections(currentPosition);
+
     };
   
     const geolocError = (err) => {
@@ -619,6 +666,9 @@ AFRAME.registerComponent('cursor-listener', {
         `${initialScale*3}, ${initialScale*3}, 1` :
         `${initialScale*3}, ${initialScale*3}, ${initialScale*3}`;
       this.setAttribute('scale', scale);
+
+      //const dist = this.getAttribute(distance);
+
       const name = this.getAttribute('data-name');
       toast(name, 1500);
     });
