@@ -446,7 +446,7 @@ function renderPlace(currentPosition, place) {
     mainObject.setAttribute('data-primitive', 'image');
     mainObject.setAttribute('src', place.image);
     mainObject.setAttribute('scale', `${scale}, ${scale}`);
-  } else if (/roi|ranch/i.test(place.name)) {
+  /*} else if (/roi|ranch/i.test(place.name)) {
     mainObject = document.createElement('a-entity');
     mainObject.setAttribute('gltf-model', '#Castle');
     scale = 500;
@@ -455,13 +455,33 @@ function renderPlace(currentPosition, place) {
     mainObject = document.createElement('a-entity');
     mainObject.setAttribute('gltf-model', '#Mammouth');
     scale = 50;
-    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);*/
   } else {
     mainObject = document.createElement('a-entity');
+    // box
+    /*
     mainObject.setAttribute('data-primitive', 'box');
     mainObject.setAttribute('geometry', 'primitive: box; width: 1; height: 1; depth: 1');
     mainObject.setAttribute('material', 'color: #6666ff;');
+    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);*/
+
+    // sphere
+    /*
+    mainObject.setAttribute('data-primitive', 'sphere');
+    mainObject.setAttribute('geometry', 'primitive: sphere');
+    mainObject.setAttribute('material', 'color: #EFEFEF; shader: flat');
+    //mainObject.setAttribute('position', '0 0.15 -5');
+    mainObject.setAttribute('light', 'type: point; intensity: 5');
+    //mainObject.setAttribute('animation', 'property: position; easing: easeInOutQuad; dir: alternate; dur: 1000; to: 0 -0.10 -5; loop: true');
+
+    mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);*/
+    
+    mainObject = document.createElement('a-entity');
+    mainObject.setAttribute('gltf-model', '#map-pointer');
+    scale = 4;
     mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
+
+
   }
   // if (place.tags && place.tags.natural && place.tags.natural === 'peak') {
   // item.setAttribute('data-primitive', 'cone');
@@ -569,18 +589,18 @@ function renderPlaces(currentPosition, places) {
   });
 }*/
 
-let heading; // declare compass vars
+//let heading = null; // declare compass vars
 
 AFRAME.registerComponent('geoloc', {
   init: function () {
     //console.log(this.el);
 
-    if (window.DeviceOrientationEvent) {
+    /*if (window.DeviceOrientationEvent) {
       window.addEventListener('deviceorientation', function(e) { // get current compass heading
         if (e.webkitCompassHeading) heading = e.webkitCompassHeading; // get webkit compass heading
         else heading = e.alpha; // get android compass heading
       });
-    }
+    }*/
 
     toast('getCurrentPosition...', 2000);
 
@@ -658,16 +678,18 @@ AFRAME.registerComponent('cursor-listener', {
       this.setAttribute('material', 'color', COLORS[lastIndex]);
       console.log('I was clicked at: ', evt.detail.intersection.point);
     });*/
+    const scaleUp = 5;
 
     this.el.addEventListener('mouseenter', function (_ev) {
       const initialScale = this.getAttribute('data-initialScale');
       const primitive = this.getAttribute('data-primitive');
       const scale = primitive === 'image' ?
-        `${initialScale*3}, ${initialScale*3}, 1` :
-        `${initialScale*3}, ${initialScale*3}, ${initialScale*3}`;
+        `${initialScale*scaleUp}, ${initialScale*scaleUp}, 1` :
+        `${initialScale*scaleUp}, ${initialScale*scaleUp}, ${initialScale*scaleUp}`;
       this.setAttribute('scale', scale);
 
       //const dist = this.getAttribute(distance);
+      //this.setAttribute('light', 'type: point; intensity: 10');
 
       const name = this.getAttribute('data-name');
       toast(name, 1500);
@@ -691,15 +713,16 @@ AFRAME.registerComponent('cursor-listener', {
       const name = this.getAttribute('data-name');
       toast(name, 1500);
     });
- 
+
 
   }
 });
 
-
+/*
 const directions = ['N', 'O', 'S', 'E'];
 AFRAME.registerComponent('cockpit', {
   tick: function () {
+    if (heading === null) { return; }
     const bearing = document.querySelector('#bearing'); // set bearing
     
     let bearingValue = '';
@@ -728,4 +751,4 @@ AFRAME.registerComponent('cockpit', {
     compass.setAttribute('rotation', {z: 0-heading}); // set compass angle, reverse direction
   },
 });
-
+*/
