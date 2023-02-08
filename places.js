@@ -5,16 +5,16 @@
 //let cachePlaces = {};
 let currentPosition = null;
 
-const assets = {
+const assets = [
   // natural
-  'icon-peak': './img/icons/peak-16px.png',
-  'icon-saddle': './img/icons/saddle-16px.png',
-  'icon-spring': './img/icons/spring-120px.png',
+  { 'id': 'icon-peak', 'type': 'img', 'src': './img/icons/peak-16px.png'},
+  { 'id': 'icon-saddle', 'type': 'img', 'src': './img/icons/saddle-16px.png'},
+  { 'id': 'icon-spring', 'type': 'img', 'src': './img/icons/spring-120px.png'},
   // leisure
-  'icon-playground': './img/icons/playground-28px.png',
+  { 'id': 'icon-playground', 'type': 'img', 'src': './img/icons/playground-28px.png'},
   // gltf
-  'map-pointer': 'map-pointer.gltf',
-};
+  { 'id': 'map-pointer', 'type': 'gltf-model', 'src': 'map-pointer.gltf'},
+];
 
 function getOSMImage(node) {
   if (node.tags.natural === 'peak')
@@ -64,13 +64,12 @@ const haversineDistance = (latlngA, latlngB) => {
 
 function loadAssets() {
   const container = document.querySelector('a-assets');
-  for (const elem in assets) {
-    const img = document.createElement('img');
-    img.setAttribute('id', elem);
-    img.setAttribute('src', assets[elem]);
-    container.appendChild(img);
+  for (const asset of assets) {
+    const item = document.createElement(asset.type);
+    item.setAttribute('id', asset.id);
+    item.setAttribute('src', asset.src);
+    container.appendChild(item);
   }
-
 
 }
 
@@ -608,6 +607,7 @@ function saveLastPosition(position) {
 /**
  *
  *
+ * @returns {object}
  */
 function loadLastPosition() {
   const lastPosition = localStorage.getItem('lastPosition');
