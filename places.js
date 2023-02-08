@@ -12,6 +12,8 @@ const assets = {
   'icon-spring': './img/icons/spring-120px.png',
   // leisure
   'icon-playground': './img/icons/playground-28px.png',
+  // gltf
+  'map-pointer': 'map-pointer.gltf',
 };
 
 function getOSMImage(node) {
@@ -477,6 +479,7 @@ function renderPlace(currentPosition, place) {
     mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);*/
     
     mainObject = document.createElement('a-entity');
+    mainObject.setAttribute('data-primitive', 'map-pointer');
     mainObject.setAttribute('gltf-model', '#map-pointer');
     scale = 4;
     mainObject.setAttribute('scale', `${scale}, ${scale}, ${scale}`);
@@ -589,6 +592,36 @@ function renderPlaces(currentPosition, places) {
   });
 }*/
 
+/**
+ *
+ *
+ * @param {GeolocationCoordinates} position
+ */
+function saveLastPosition(position) {
+  const lastPosition = {
+    latitude: position.latitude,
+    longitude: position.longitude,
+    altitude: position.altitude,
+  };
+  localStorage.setItem('lastPosition', JSON.stringify(lastPosition));
+}
+/**
+ *
+ *
+ */
+function loadLastPosition() {
+  const lastPosition = localStorage.getItem('lastPosition');
+  let position;
+  if (lastPosition !== null) {
+    position = JSON.parse(lastPosition);
+    toast('position not found : use last position found (' + lastPosition.latitude + ' ' + lastPosition.longitude + ')', 2000);
+  } else {
+    position = {latitude: 43.330138, longitude: 5.492356};
+    toast('position not found : use home', 2000);
+  }
+  return position;
+}
+
 //let heading = null; // declare compass vars
 
 AFRAME.registerComponent('geoloc', {
@@ -608,7 +641,8 @@ AFRAME.registerComponent('geoloc', {
       currentPosition = position.coords;
       toast('found position', 2000);
 
-      localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
+      //localStorage.setItem('lastPosition', JSON.stringify(currentPosition));
+      saveLastPosition(currentPosition)
       getNearbyPlaces(currentPosition);
       /*getNearbyArticle(currentPosition)
         .then((places) => {
@@ -620,14 +654,15 @@ AFRAME.registerComponent('geoloc', {
   
     const geolocError = (err) => {
       console.error('Error in retrieving position', err);
-      const lastPosition = localStorage.getItem('lastPosition');
-      if (lastPosition) {
-        currentPosition = JSON.parse(lastPosition);
-        toast('position not found : use last position found (' + lastPosition + ')', 2000);
-      } else {
-        currentPosition = {latitude: 43.330138, longitude: 5.492356};
-        toast('position not found : use home', 2000);
-      }
+      //const lastPosition = localStorage.getItem('lastPosition');
+      //if (lastPosition) {
+      //  currentPosition = JSON.parse(lastPosition);
+      //  toast('position not found : use last position found (' + lastPosition + ')', 2000);
+      //} else {
+      //  currentPosition = {latitude: 43.330138, longitude: 5.492356};
+      //  toast('position not found : use home', 2000);
+      //}
+      currentPosition = loadLastPosition();
 
       getNearbyPlaces(currentPosition);
       /*getNearbyArticle(currentPosition)
